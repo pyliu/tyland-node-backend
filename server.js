@@ -19,6 +19,8 @@ app.use(compression()); // compress all responses
 app.use(express.static(dirName)); // to access the files in `${dirName}` folder
 app.use(cors()); // it enables all cors requests
 app.use(fileUpload());
+app.use( express.urlencoded({ extended: true }) );
+app.use(express.json());
 
 // file upload api
 app.post("/upload", (req, res) => {
@@ -42,8 +44,11 @@ app.post("/upload", (req, res) => {
 });
 
 app.post("/test", (req, res) => {
-  const { Worker } = require('worker_threads');
+  const { Worker } = require("worker_threads");
   const worker = new Worker("./workers/test.js");
+
+  console.log(req.body)
+
   // 傳遞資料給worker
   worker.postMessage("send to worker");
   // 監聽: 接收worker回報的資料
