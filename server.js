@@ -43,18 +43,16 @@ app.post("/upload", (req, res) => {
   });
 });
 
-app.post("/test", (req, res) => {
+app.post("/login", (req, res) => {
   const { Worker } = require("worker_threads");
-  const worker = new Worker("./workers/test.js");
-
-  console.log(req.body)
-
-  // 傳遞資料給worker
-  worker.postMessage("send to worker");
+  const worker = new Worker("./workers/login.js");
   // 監聽: 接收worker回報的資料
   worker.on("message", (msg) => {
     console.info(msg);
+    res.send({ message: msg });
   });
+  // 傳遞資料給worker
+  worker.postMessage(req.body);
 });
 
 app.listen(4500, () => {
