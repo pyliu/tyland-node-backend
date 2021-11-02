@@ -49,7 +49,7 @@ app.post("/login", (req, res) => {
   // 監聽: 接收worker回報的資料
   worker.on("message", (msg) => {
     console.info(msg);
-    res.send({ message: msg });
+    res.send({ loggedIn: msg });
   });
   // 傳遞資料給worker
   worker.postMessage(req.body);

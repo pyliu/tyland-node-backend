@@ -2,7 +2,7 @@
 node_modules
 /dist
 /upload
-
+/db
 
 # local env files
 .env.local
