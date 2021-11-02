@@ -11,5 +11,5 @@ parentPort.on("message", (loginInfo) => {
     user: user,
     clientId: user?.id,
   };
-  parentPort.postMessage({ token: response });
+  parentPort.postMessage(response);
 });
