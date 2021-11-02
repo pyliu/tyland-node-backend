@@ -55,6 +55,18 @@ app.post("/login", (req, res) => {
   worker.postMessage(req.body);
 });
 
+app.get("/user", (req, res) => {
+  const { Worker } = require("worker_threads");
+  const worker = new Worker("./workers/user.js");
+  // 監聽: 接收worker回報的資料
+  worker.on("message", (response) => {
+    console.info(response);
+    res.send(response);
+  });
+  // 傳遞資料給worker
+  worker.postMessage(req.clientId);
+});
+
 app.listen(4500, () => {
   console.log("server is running at port 4500");
 });
