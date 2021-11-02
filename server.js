@@ -47,9 +47,9 @@ app.post("/login", (req, res) => {
   const { Worker } = require("worker_threads");
   const worker = new Worker("./workers/login.js");
   // 監聽: 接收worker回報的資料
-  worker.on("message", (msg) => {
-    console.info(msg);
-    res.send({ loggedIn: msg });
+  worker.on("message", (response) => {
+    console.info(response);
+    res.send(response);
   });
   // 傳遞資料給worker
   worker.postMessage(req.body);

@@ -1,14 +1,14 @@
+const path = require('path');
 const { parentPort } = require('worker_threads');
 const md5 = require('md5')
-const userDB = require(path.join(__dirname, 'user-db.js'))
+const userDB = require(path.join(__dirname, '..', 'user-db.js'))
 
 parentPort.on('message', loginInfo => {
-    const user = userDB.getUser(loginInfo.username);
-    let loggedIn = false
-    if (user) {
-      loggedIn = md5(loginInfo.password) === user.pw
-      console.info(userDB.getUser(loginInfo.username));
-      console.log('password OK? ', loggedIn)
+    const db = new userDB();
+    const user = db.getUser(loginInfo.username);
+    const response = {
+      loggedIn: md5(loginInfo.password) === user?.pw,
+      user: user
     }
-    parentPort.postMessage(loggedIn);
+    parentPort.postMessage(response);
 });
