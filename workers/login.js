@@ -10,6 +10,7 @@ parentPort.on("message", (loginInfo) => {
     loggedIn: md5(loginInfo.password) === user?.pw,
     user: user,
     clientId: user?.id,
+    token: user?.pw
   };
   parentPort.postMessage(response);
 });
