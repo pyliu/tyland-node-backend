@@ -9,13 +9,12 @@ parentPort.on("message", (loginInfo) => {
   const db = new userDB();
   // set access token, params keys match the db schema
   db.setUserAccessToken({ id: loginInfo.username, token: token, token_expiretime: expireTime });
-  const user = db.getUser(loginInfo.username);
-  const response = {
-    loggedIn: md5(loginInfo.password) === user?.pw,
-    user: user,
-    clientId: user?.id,
+  const hash = db.getUserPw(loginInfo.username);
+  const data = {
+    loggedIn: md5(loginInfo.password) === hash,
+    clientId: loginInfo.username,
     token: token,
     tokenExpiretime: expireTime
   };
-  parentPort.postMessage(response);
+  parentPort.postMessage(data);
 });

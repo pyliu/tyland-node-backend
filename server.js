@@ -46,25 +46,26 @@ app.post("/upload", (req, res) => {
 app.post("/login", (req, res) => {
   const { Worker } = require("worker_threads");
   const worker = new Worker("./workers/login.js");
-  // 監聽: 接收worker回報的資料
-  worker.on("message", (response) => {
-    console.info(response);
-    res.status(response.loggedIn ? 200 : 403).send(response);
+  // listen to message to wait response from worker
+  worker.on("message", (data) => {
+    res.status(data.loggedIn ? 200 : 401).send({
+      token: data.loggedIn ? data.token : 'INVALID'
+    });
   });
-  // 傳遞資料給worker
+  // send post data to worker
   worker.postMessage(req.body);
 });
 
-app.get("/user", (req, res) => {
+app.get("/me", (req, res) => {
   const { Worker } = require("worker_threads");
-  const worker = new Worker("./workers/user.js");
-  // 監聽: 接收worker回報的資料
-  worker.on("message", (response) => {
-    console.info(response);
-    res.send(response);
+  const worker = new Worker("./workers/me.js");
+  // listen to message to wait response from worker
+  worker.on("message", (user) => {
+    const { isEmpty } = require("lodash")
+    res.status(isEmpty(user) ? 401 : 200).send({user});
   });
-  // 傳遞資料給worker
-  worker.postMessage(req.clientId);
+  // send authorization header to worker
+  worker.postMessage(req.headers.authorization);
 });
 
 app.listen(4500, () => {

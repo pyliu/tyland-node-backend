@@ -6,7 +6,7 @@ const utils = require(path.join(__dirname, 'utils.js'))
 const isDev = process.env.NODE_ENV !== 'production'
 
 class UserDB {
-  constructor () {
+  constructor() {
     this.channel = 'user'
 
     this.dbDir = path.join(__dirname, 'db')
@@ -17,16 +17,16 @@ class UserDB {
     this.open()
   }
 
-  open () {
+  open() {
     this.init()
     this.db = new Database(this.filepath, { verbose: isDev ? console.log : null })
   }
 
-  close () {
+  close() {
     this.db.close()
   }
 
-  init () {
+  init() {
     try {
       if (!fs.existsSync(this.filepath)) {
         const samplePath = path.join(__dirname, 'dimension', this.channel) + '.db'
@@ -38,7 +38,7 @@ class UserDB {
     }
   }
 
-  async createUserTable () {
+  async createUserTable() {
     if (!fs.existsSync(this.filepath)) {
       const db = new Database(this.filepath, { verbose: isDev ? console.log : null })
       db.prepare(`
@@ -58,7 +58,7 @@ class UserDB {
     }
   }
 
-  replaceUser (params, retry = 0) {
+  replaceUser(params, retry = 0) {
     try {
       const prepared = this.db.prepare(`
         REPLACE INTO user(id, name, pw, authority, note)
@@ -91,11 +91,25 @@ class UserDB {
     }
   }
 
-  getUser (id) {
+  getUser(id) {
     return this.db.prepare('SELECT * FROM user WHERE id = ?').get(id)
   }
-  
-  removeUser (id) {
+
+  getUserPw(id) {
+    return this.db.prepare('SELECT * FROM user WHERE id = ?').get(id)?.pw
+  }
+
+  getUserByToken(token) {
+    const user = this.db.prepare('SELECT * FROM user WHERE token = ?').get(token)
+    if (user) {
+      const now = +new Date()
+      const token_expiretime = user.token_expiretime
+      if (now < token_expiretime) { return user }
+    }
+    return false
+  }
+
+  removeUser(id) {
     try {
       const prepared = this.db.prepare('DELETE FROM user WHERE id = $id')
       const deletion = this.db.transaction((id) => {
@@ -111,7 +125,7 @@ class UserDB {
     return false
   }
 
-  setUserAccessToken (params) {
+  setUserAccessToken(params) {
     try {
       const prepared = this.db.prepare('UPDATE user SET token = $token, token_expiretime = $token_expiretime WHERE id = $id')
       const update = this.db.transaction((obj) => {
@@ -127,7 +141,7 @@ class UserDB {
     return false
   }
 
-  setAdmin (id, currentAuth) {
+  setAdmin(id, currentAuth) {
     try {
       // authority definition is 0 => normal, 1 => admin
       if ((currentAuth & 1) === 1) {
@@ -149,7 +163,7 @@ class UserDB {
     return false
   }
 
-  isAdmin (id) {
+  isAdmin(id) {
     try {
       const user = this.db.prepare('SELECT * FROM user WHERE id = ?').get(id)
       return (parseInt(user?.authority) & 1) === 1
