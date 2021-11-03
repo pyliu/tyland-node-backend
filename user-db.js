@@ -132,9 +132,9 @@ class UserDB {
         return prepared.run(obj)
       })
       const result = update.deferred(params)
-      // info: { changes: 1, lastInsertRowid: 0 }
-      isDev && console.log(`更新 ${this.channel} 使用者 ${params.id} TOKEN 成功`, result)
-      return result
+      // result: { changes: 1, lastInsertRowid: 0 }
+      isDev && console.log(`更新 ${this.channel} 使用者 ${params.id} TOKEN ${result.changes > 0 ? '成功' : '失敗'}`, result)
+      return result.changes > 0
     } catch (e) {
       console.error(`更新 ${this.channel} 使用者 ${params.id} TOKEN 失敗`, e, params)
     }

@@ -4,15 +4,15 @@ const md5 = require("md5");
 const userDB = require(path.join(__dirname, "..", "user-db.js"));
 
 parentPort.on("message", (loginInfo) => {
-  const token = md5(+new Date() + loginInfo.username)
+  const token = md5(+new Date() + loginInfo.userid)
   const expireTime = +new Date() + 30 * 1000 //Date.now() milliseconds 微秒數
   const db = new userDB();
   // set access token, params keys match the db schema
-  db.setUserAccessToken({ id: loginInfo.username, token: token, token_expiretime: expireTime });
-  const hash = db.getUserPw(loginInfo.username);
+  db.setUserAccessToken({ id: loginInfo.userid, token: token, token_expiretime: expireTime });
+  const hash = db.getUserPw(loginInfo.userid);
   const data = {
     loggedIn: md5(loginInfo.password) === hash,
-    clientId: loginInfo.username,
+    clientId: loginInfo.userid,
     token: token,
     tokenExpiretime: expireTime
   };

@@ -4,7 +4,9 @@ const fileUpload = require("express-fileupload");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
+const { isEmpty } = require("lodash");
 const StatusCodes = require("http-status-codes").StatusCodes;
+const { Worker } = require("worker_threads");
 
 const dirName = "upload";
 const uploadDir = path.join(__dirname, dirName);
@@ -44,28 +46,36 @@ app.post("/upload", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const { Worker } = require("worker_threads");
-  const worker = new Worker("./workers/login.js");
-  // listen to message to wait response from worker
-  worker.on("message", (data) => {
-    res.status(data.loggedIn ? 200 : 401).send({
-      token: data.loggedIn ? data.token : 'INVALID'
+  const postBody = req.body
+  if (isEmpty(postBody.userid) || isEmpty(postBody.password)) {
+    console.warn('user id or password is empty', postBody)
+    res.status(StatusCodes.BAD_REQUEST).send({});
+  } else {
+    const worker = new Worker("./workers/login.js");
+    // listen to message to wait response from worker
+    worker.on("message", (data) => {
+      res.status(data.loggedIn ? StatusCodes.OK : StatusCodes.UNAUTHORIZED).send({
+        token: data.loggedIn ? data.token : 'INVALID'
+      });
     });
-  });
-  // send post data to worker
-  worker.postMessage(req.body);
+    // send post data to worker
+    worker.postMessage(postBody);
+  }
 });
 
 app.get("/me", (req, res) => {
-  const { Worker } = require("worker_threads");
-  const worker = new Worker("./workers/me.js");
-  // listen to message to wait response from worker
-  worker.on("message", (user) => {
-    const { isEmpty } = require("lodash")
-    res.status(isEmpty(user) ? 401 : 200).send({user});
-  });
-  // send authorization header to worker
-  worker.postMessage(req.headers.authorization);
+  if (isEmpty(req.headers.authorization) || !req.headers.authorization.startsWith("Bearer ")) {
+    console.warn('No Authorization header found', req.headers.authorization)
+    res.status(StatusCodes.BAD_REQUEST).send({});
+  } else {
+    const worker = new Worker("./workers/me.js");
+    // listen to message to wait response from worker
+    worker.on("message", (user) => {
+      res.status(isEmpty(user) ? 401 : 200).send({user});
+    });
+    // send authorization header to worker
+    worker.postMessage(req.headers.authorization);
+  }
 });
 
 app.listen(4500, () => {
