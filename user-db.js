@@ -44,10 +44,12 @@ class UserDB {
       db.prepare(`
         CREATE TABLE IF NOT EXISTS "user" (
           "id"	TEXT NOT NULL,
-          "name"	TEXT,
+	        "name"	TEXT,
           "pw"	TEXT NOT NULL DEFAULT '2a4c124add170ac85243ab9649aa97f7',
           "authority"	INTEGER NOT NULL DEFAULT 0,
           "note"	TEXT,
+          "token"	TEXT,
+          "token_expiretime"	INTEGER,
           PRIMARY KEY("id")
         )
       `).run()
@@ -105,6 +107,22 @@ class UserDB {
       return result
     } catch (e) {
       console.error(`移除 ${this.channel} 使用者 ${id} 失敗`, e)
+    }
+    return false
+  }
+
+  setUserAccessToken (params) {
+    try {
+      const prepared = this.db.prepare('UPDATE user SET token = $token, token_expiretime = $token_expiretime WHERE id = $id')
+      const update = this.db.transaction((obj) => {
+        return prepared.run(obj)
+      })
+      const result = update.deferred(params)
+      // info: { changes: 1, lastInsertRowid: 0 }
+      isDev && console.log(`更新 ${this.channel} 使用者 ${params.id} TOKEN 成功`, result)
+      return result
+    } catch (e) {
+      console.error(`更新 ${this.channel} 使用者 ${params.id} TOKEN 失敗`, e, params)
     }
     return false
   }
