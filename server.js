@@ -63,6 +63,21 @@ app.post("/login", (req, res) => {
   }
 });
 
+app.post("/logout", (req, res) => {
+  if (isEmpty(req.headers.authorization) || !req.headers.authorization.startsWith("Bearer ")) {
+    console.warn('No Authorization header found', req.headers.authorization)
+    res.status(StatusCodes.BAD_REQUEST).send({});
+  } else {
+    const worker = new Worker("./workers/logout.js");
+    // listen to message to wait response from worker
+    worker.on("message", (data) => {
+      res.status(data.ok ? 200 : 401).send({data});
+    });
+    // send authorization header to worker
+    worker.postMessage(req.headers.authorization);
+  }
+});
+
 app.get("/me", (req, res) => {
   if (isEmpty(req.headers.authorization) || !req.headers.authorization.startsWith("Bearer ")) {
     console.warn('No Authorization header found', req.headers.authorization)
