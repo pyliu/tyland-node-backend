@@ -23,6 +23,7 @@
     "http-status-codes": "^2.1.4",
     "lodash": "^4.17.21",
     "md5": "^2.3.0",
+    "mongoose": "^6.0.12",
     "sqlite3": "^5.0.2"
   },
   "devDependencies": {
