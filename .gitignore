@@ -2,11 +2,11 @@
 node_modules
 /dist
 /upload
-/db
 
 # local env files
 .env.local
 .env.*.local
+.env
 
 # Log files
 npm-debug.log*
