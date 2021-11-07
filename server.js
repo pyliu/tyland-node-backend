@@ -14,7 +14,19 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
 
+require('dotenv').config()
+
 const app = express();
+
+const mongoose = require('mongoose');
+const mongoDB = `mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@localhost/tyland`;
+mongoose.connect(mongoDB, { useNewUrlParser: true })
+const db = mongoose.connection
+db.on('error', console.error.bind(console, 'MongoDB 連線錯誤:', mongoDB))
+db.once('open', function(err) {
+  if (err) return console.error(err);
+  console.log(`MongoDB 已連線。`)
+})
 
 // middle ware
 app.use(compression()); // compress all responses
@@ -48,7 +60,7 @@ app.post("/upload", (req, res) => {
 app.post("/login", (req, res) => {
   const postBody = req.body
   if (isEmpty(postBody.userid) || isEmpty(postBody.password)) {
-    console.warn('user id or password is empty', postBody)
+    console.warn('登入資訊為空值。', postBody)
     res.status(StatusCodes.BAD_REQUEST).send({});
   } else {
     const worker = new Worker("./workers/login.js");
@@ -92,8 +104,6 @@ app.get("/me", (req, res) => {
     worker.postMessage(req.headers.authorization);
   }
 });
-
-
 
 app.listen(4500, () => {
   console.log("server is running at port 4500");
