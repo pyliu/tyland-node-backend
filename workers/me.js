@@ -1,15 +1,31 @@
 const path = require("path");
+const __basename = path.basename(__filename);
+const isEmpty = require("lodash/isEmpty");
 const { parentPort } = require("worker_threads");
-const mongoUser = require(path.join(__dirname, "..", "model", "user.js"));
+const config = require(path.join(__dirname, "..", "model", "config.js"));
+const MongoClient = require('mongodb').MongoClient;
 
-parentPort.on("message", (authorizationHeader) => {
+parentPort.on("message", async (authorizationHeader) => {
   // auth header, e.g. "Bearer 1dca1747faea2a040d8adedba4cb44ec"
   const hash = authorizationHeader.replace("Bearer ", "");
-  mongoUser.find({ token: { hash } }).exec(function (err, docs) {
-    if (err) {
-      parentPort.postMessage({});
-      return console.error(err);
+  const client = new MongoClient(config.connUri);
+  let userDoc = {}
+  try {
+    await client.connect();
+    config.isDev && console.log(__basename, '✔ DB已連線');
+    const userCollection = client.db().collection(config.userCollection);
+    const tokenFilter = { 'token.hash': hash };
+    const user = await userCollection.findOne(tokenFilter);
+    if (isEmpty(user)) {
+      config.isDev && console.log(__basename, '❌ 找不到使用者資料', tokenFilter);
+    } else {
+      config.isDev && console.log(__basename, '✔ 找到使用者資料', tokenFilter);
+      userDoc = { ...user };
     }
-    parentPort.postMessage({ ...docs });
-  });
+  } catch (e) {
+    config.isDev && console.error(__basename, '❗ 處理登入執行期間錯誤', e);
+  } finally {
+    parentPort.postMessage({ ...userDoc });
+    await client.close();
+  }
 });
