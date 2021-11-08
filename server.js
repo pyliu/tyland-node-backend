@@ -1,3 +1,4 @@
+const isDev = process.env.NODE_ENV !== 'production';
 const compression = require("compression");
 const express = require("express");
 const fileUpload = require("express-fileupload");
@@ -18,15 +19,27 @@ require('dotenv').config()
 
 const app = express();
 
-const mongoose = require('mongoose');
-const mongoDB = `mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@localhost/tyland`;
-mongoose.connect(mongoDB, { useNewUrlParser: true })
-const db = mongoose.connection
-db.on('error', console.error.bind(console, 'MongoDB 連線錯誤:', mongoDB))
-db.once('open', function(err) {
-  if (err) return console.error(err);
-  console.log(`MongoDB 已連線。`)
-})
+// const mongoDB = `mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@127.0.0.1:27017/tyland`;
+// const mongoose = require('mongoose');
+// async function main() { await mongoose.connect(mongoDB); }
+// main().then(() => console.log('tyland 資料庫已連線。')).catch(err => console.log(err));
+
+// const mongoose = require('mongoose');
+// const mongoDB = `mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@127.0.0.1:27017/tyland`;
+// const mongoose = require('mongoose');
+// mongoose.connect(mongoDB)
+// const db = mongoose.connection
+// db.on('error', function (err) {
+//   console.error('MongoDB 連線錯誤:', mongoDB);
+//   parentPort.postMessage(data);
+// });
+// db.once('open', function (err) {
+//   if (err) {
+//     return console.error(err);
+//   } else {
+//     console.log('✔ MongoDB連線成功。');
+//   }
+// });
 
 // middle ware
 app.use(compression()); // compress all responses
@@ -59,6 +72,7 @@ app.post("/upload", (req, res) => {
 
 app.post("/login", (req, res) => {
   const postBody = req.body
+  isDev && console.log('👉 收到 Login 請求', postBody);
   if (isEmpty(postBody.userid) || isEmpty(postBody.password)) {
     console.warn('登入資訊為空值。', postBody)
     res.status(StatusCodes.BAD_REQUEST).send({});
@@ -67,10 +81,10 @@ app.post("/login", (req, res) => {
     // listen to message to wait response from worker
     worker.on("message", (data) => {
       res.status(data.loggedIn ? StatusCodes.OK : StatusCodes.UNAUTHORIZED).send({
-        token: data.loggedIn ? data.token : 'INVALID'
+        token: data.token
       });
     });
-    // send post data to worker
+    // send data to worker
     worker.postMessage(postBody);
   }
 });
