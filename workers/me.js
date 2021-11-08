@@ -2,7 +2,7 @@ const path = require("path");
 const __basename = path.basename(__filename);
 const isEmpty = require("lodash/isEmpty");
 const { parentPort } = require("worker_threads");
-const config = require(path.join(__dirname, "..", "model", "config.js"));
+const config = require(path.join(__dirname, "..", "model", "config"));
 const MongoClient = require('mongodb').MongoClient;
 
 parentPort.on("message", async (authorizationHeader) => {
@@ -23,7 +23,7 @@ parentPort.on("message", async (authorizationHeader) => {
       userDoc = { ...user };
     }
   } catch (e) {
-    config.isDev && console.error(__basename, '❗ 處理登入執行期間錯誤', e);
+    console.error(__basename, '❗ 處理登入執行期間錯誤', e);
   } finally {
     parentPort.postMessage({ ...userDoc });
     await client.close();

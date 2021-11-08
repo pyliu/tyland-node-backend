@@ -1,45 +1,18 @@
+require('dotenv').config()
 const isDev = process.env.NODE_ENV !== 'production';
 const compression = require("compression");
 const express = require("express");
 const fileUpload = require("express-fileupload");
 const cors = require("cors");
-const fs = require("fs");
 const path = require("path");
 const { isEmpty } = require("lodash");
 const StatusCodes = require("http-status-codes").StatusCodes;
 const { Worker } = require("worker_threads");
 
 const dirName = "upload";
-const uploadDir = path.join(__dirname, dirName);
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
-}
-
-require('dotenv').config()
+require("./model/initialize")(dirName);
 
 const app = express();
-
-// const mongoDB = `mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@127.0.0.1:27017/tyland`;
-// const mongoose = require('mongoose');
-// async function main() { await mongoose.connect(mongoDB); }
-// main().then(() => console.log('tyland 資料庫已連線。')).catch(err => console.log(err));
-
-// const mongoose = require('mongoose');
-// const mongoDB = `mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@127.0.0.1:27017/tyland`;
-// const mongoose = require('mongoose');
-// mongoose.connect(mongoDB)
-// const db = mongoose.connection
-// db.on('error', function (err) {
-//   console.error('MongoDB 連線錯誤:', mongoDB);
-//   parentPort.postMessage(data);
-// });
-// db.once('open', function (err) {
-//   if (err) {
-//     return console.error(err);
-//   } else {
-//     console.log('✔ MongoDB連線成功。');
-//   }
-// });
 
 // middle ware
 app.use(compression()); // compress all responses

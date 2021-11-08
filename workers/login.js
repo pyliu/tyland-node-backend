@@ -3,7 +3,7 @@ const path = require("path");
 const __basename = path.basename(__filename);
 const md5 = require("md5");
 const isEmpty = require("lodash/isEmpty");
-const config = require(path.join(__dirname, "..", "model", "config.js"))
+const config = require(path.join(__dirname, "..", "model", "config"))
 const MongoClient = require('mongodb').MongoClient;
 
 parentPort.on("message", async (loginInfo) => {
@@ -36,7 +36,7 @@ parentPort.on("message", async (loginInfo) => {
       config.isDev && console.log(__basename, '❌ 登入失敗(找不到使用者)', { _id: loginInfo.userid });
     }
   } catch (e) {
-    config.isDev && console.error(__basename, '❗ 處理登入執行期間錯誤', e);
+    console.error(__basename, '❗ 處理登入執行期間錯誤', e);
   } finally {
     parentPort.postMessage(data);
     await client.close();
