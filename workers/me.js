@@ -25,7 +25,7 @@ parentPort.on("message", async (authorizationHeader) => {
   } catch (e) {
     console.error(__basename, '❗ 處理登入執行期間錯誤', e);
   } finally {
-    parentPort.postMessage({ ...userDoc });
+    parentPort.postMessage(userDoc);
     await client.close();
   }
 });
