@@ -1,9 +1,10 @@
 const fs = require("fs");
 const path = require("path");
-const __basename = path.basename(__filename);
 const isEmpty = require("lodash/isEmpty");
 const config = require(path.join(__dirname, "config.js"));
 const MongoClient = require("mongodb").MongoClient;
+
+const __basename = path.basename(__filename);
 
 module.exports = async function (dirName) {
   const uploadDir = path.join(__dirname, "..", dirName);
@@ -14,7 +15,7 @@ module.exports = async function (dirName) {
   const client = new MongoClient(config.connUri);
   try {
     await client.connect();
-    config.isDev && console.log(__basename, "✔ DB已連線");
+    config.isDev && console.log(__basename, "✔ MongoDB 可正常連線");
     const userCollection = client.db().collection(config.userCollection);
     const idFilter = { _id: 'HAADMIN' };
     const admin = await userCollection.findOne(idFilter);
