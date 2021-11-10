@@ -16,7 +16,7 @@ parentPort.on("message", async (loginInfo) => {
     await client.connect();
     config.isDev && console.log(__basename, '✔ DB已連線');
     const userCollection = client.db().collection(config.userCollection);
-    const user = await userCollection.findOne({ _id: loginInfo.userid });
+    const user = await userCollection.findOne({ id: loginInfo.userid });
     if (!isEmpty(user)) {
       config.isDev && console.log(__basename, '✔ 找到使用者資料', user);
       if (user && user.pwd === md5(loginInfo.password)) {
@@ -27,13 +27,13 @@ parentPort.on("message", async (loginInfo) => {
           hash: data.token,
           expire: +new Date() + loginInfo.maxAge * 1000 //Date.now() milliseconds 微秒數
         };
-        const result = await userCollection.updateOne({ _id: loginInfo.userid }, { $set: { token: token } });
+        const result = await userCollection.updateOne({ id: loginInfo.userid }, { $set: { token: token } });
         config.isDev && console.log(__basename, `${loginInfo.userid} 文件已更新`, `找到 ${result.matchedCount} 個文件, 更新 ${result.modifiedCount} 個文件`, token);
       } else {
-        config.isDev && console.log(__basename, '❌ 登入失敗(密碼不對)', { _id: loginInfo.userid });
+        config.isDev && console.log(__basename, '❌ 登入失敗(密碼不對)', { id: loginInfo.userid });
       }
     } else {
-      config.isDev && console.log(__basename, '❌ 登入失敗(找不到使用者)', { _id: loginInfo.userid });
+      config.isDev && console.log(__basename, '❌ 登入失敗(找不到使用者)', { id: loginInfo.userid });
     }
   } catch (e) {
     console.error(__basename, '❗ 處理登入執行期間錯誤', e);

@@ -22,9 +22,9 @@ parentPort.on("message", async (authorizationHeader) => {
     } else {
       config.isDev && console.log(__basename, '✔ 找到使用者資料', tokenFilter);
       const result = await userCollection.updateOne(tokenFilter, { $set: { token: { hash: null, expire: null } } });
-      config.isDev && console.log(__basename, `${user._id} token 已清空`, `找到 ${result.matchedCount} 個文件, 更新 ${result.modifiedCount} 個文件`);
+      config.isDev && console.log(__basename, `${user.id} token 已清空`, `找到 ${result.matchedCount} 個文件, 更新 ${result.modifiedCount} 個文件`);
       data.ok = true;
-      data.message = `${user._id} ${user.name} token 已清空。`;
+      data.message = `${user.id} ${user.name} token 已清空。`;
     }
   } catch (e) {
     console.error(__basename, '❗ 處理登入執行期間錯誤', e);
