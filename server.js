@@ -92,6 +92,7 @@ app.get("/me", (req, res) => {
   }
 });
 
-app.listen(4500, () => {
-  console.log("server is running at port 4500");
+const SERVER_PORT = process.env.PORT || 4500;
+app.listen(SERVER_PORT, () => {
+  console.log(`server is running at port ${SERVER_PORT}`);
 });
