@@ -19,7 +19,7 @@ app.use(compression()); // compress all responses
 app.use(express.static(dirName)); // to access the files in `${dirName}` folder
 app.use(cors()); // it enables all cors requests
 app.use(fileUpload());
-app.use( express.urlencoded({ extended: true }) );
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // file upload api
@@ -70,7 +70,7 @@ app.post("/logout", (req, res) => {
     const worker = new Worker("./workers/logout.js");
     // listen to message to wait response from worker
     worker.on("message", (data) => {
-      res.status(data.ok ? 200 : 401).send({data});
+      res.status(data.ok ? 200 : 401).send({ data });
     });
     // send authorization header to worker
     worker.postMessage(req.headers.authorization);
@@ -85,12 +85,27 @@ app.get("/me", (req, res) => {
     const worker = new Worker("./workers/me.js");
     // listen to message to wait response from worker
     worker.on("message", (user) => {
-      res.status(isEmpty(user) ? 401 : 200).send({user});
+      res.status(isEmpty(user) ? 401 : 200).send({ user });
     });
     // send authorization header to worker
     worker.postMessage(req.headers.authorization);
   }
 });
+
+app.post("/add", (req, res) => {
+  if (isEmpty(req.headers.authorization) || !req.headers.authorization.startsWith("Bearer ")) {
+    console.warn('No Authorization header found', req.headers.authorization)
+    res.status(StatusCodes.BAD_REQUEST).send({});
+  } else {
+    const worker = new Worker("./workers/add.js");
+    // listen to message to wait response from worker
+    worker.on("message", (data) => {
+      res.status(data.ok ? 200 : 401).send({ ...data });
+    });
+    // post data
+    worker.postMessage(req.body);
+  }
+})
 
 const SERVER_PORT = process.env.PORT || 4500;
 app.listen(SERVER_PORT, () => {
