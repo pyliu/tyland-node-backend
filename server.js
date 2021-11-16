@@ -8,6 +8,7 @@ const path = require("path");
 const { isEmpty } = require("lodash");
 const StatusCodes = require("http-status-codes").StatusCodes;
 const { Worker } = require("worker_threads");
+const config = require('./model/config');
 
 const dirName = "upload";
 require("./model/initialize")(dirName);
@@ -70,7 +71,7 @@ app.post("/logout", (req, res) => {
     const worker = new Worker("./workers/logout.js");
     // listen to message to wait response from worker
     worker.on("message", (data) => {
-      res.status(data.ok ? 200 : 401).send({ data });
+      res.status(data.ok ? StatusCodes.OK : StatusCodes.UNAUTHORIZED).send({ data });
     });
     // send authorization header to worker
     worker.postMessage(req.headers.authorization);
@@ -85,7 +86,7 @@ app.get("/me", (req, res) => {
     const worker = new Worker("./workers/me.js");
     // listen to message to wait response from worker
     worker.on("message", (user) => {
-      res.status(isEmpty(user) ? 401 : 200).send({ user });
+      res.status(isEmpty(user) ? StatusCodes.UNAUTHORIZED : StatusCodes.OK).send({ user });
     });
     // send authorization header to worker
     worker.postMessage(req.headers.authorization);
@@ -100,7 +101,7 @@ app.post("/add", (req, res) => {
     const worker = new Worker("./workers/add.js");
     // listen to message to wait response from worker
     worker.on("message", (data) => {
-      res.status(data.ok ? 200 : 401).send({ ...data });
+      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.UNAUTHORIZED : StatusCodes.OK).send({ ...data });
     });
     // post data
     worker.postMessage(req.body);
