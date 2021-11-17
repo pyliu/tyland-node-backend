@@ -48,12 +48,22 @@ parentPort.on("message", async (postBody) => {
         };
         const regCase = await caseCollection.findOne(caseFilter);
         if (isEmpty(regCase)) {
-          response.statusCode = config.statusCode.FAIL_NOT_IMPLEMENTED;
-          response.message = "尚未實作!";
-          response.payload = caseFilter;
+
+          const caseDoc = { ...postBody };
+          delete caseDoc.token;
+          const result = await caseCollection.insertOne(caseDoc);
+
+          const statusCode = result.acknowledged ? config.statusCode.SUCCESS : config.statusCode.FAIL;
+          const message =  result.acknowledged ? `✔ 新增案件資料成功(_id: ${result.insertedId})` : "❌ 新增案件失敗!";
+
+          config.isDev && console.log(__basename, message);
+
+          response.statusCode = statusCode;
+          response.message = message;
+          response.payload = result;
         } else {
           response.statusCode = config.statusCode.FAIL_DUPLICATED;
-          response.message = "案件已存在!";
+          response.message = "⚠ 案件已存在!";
           response.payload = caseFilter;
         }
       }
