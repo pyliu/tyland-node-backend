@@ -17,7 +17,12 @@ parentPort.on("message", async (postBody) => {
     await client.connect();
     config.isDev && console.log(__basename, "👌 繼續執行搜尋案件 ... ", postBody);
     const caseCollection = client.db().collection(config.caseCollection);
+    
+    const limit = postBody.limit || 0;
+    delete postBody.limit;
+    
     const cursor = await caseCollection.find(postBody);
+    limit && cursor.limit(limit);
     const count = await cursor.count();
     if (count === 0) {
       const message =  "❔ 找不到資料。";
