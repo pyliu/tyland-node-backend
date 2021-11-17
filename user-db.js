@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const Database = require('better-sqlite3')
-const utils = require(path.join(__dirname, 'utils.js'))
+const utils = require(path.join(__dirname, 'model', 'utils.js'))
 
 const isDev = process.env.NODE_ENV !== 'production'
 

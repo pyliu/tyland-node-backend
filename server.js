@@ -9,6 +9,7 @@ const { isEmpty } = require("lodash");
 const StatusCodes = require("http-status-codes").StatusCodes;
 const { Worker } = require("worker_threads");
 const config = require('./model/config');
+const utils = require('./model/utils');
 
 const dirName = "upload";
 require("./model/initialize")(dirName);
@@ -25,23 +26,27 @@ app.use(express.json());
 
 // file upload api
 app.post("/upload", (req, res) => {
-  if (!req.files) {
-    return res.status(StatusCodes.NOT_FOUND).send({ msg: "找不到檔案" });
-  }
-  // accessing the file
-  const myFile = req.files.file;
-  const storePath = path.join(__dirname, dirName, myFile.name);
-  //  mv() method places the file inside public directory
-  myFile.mv(storePath, function (err) {
-    if (err) {
-      console.error(err);
-      return res
-        .status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .send({ msg: "發生錯誤" });
+  if (utils.authenticate(req.headers.authorization)) {
+    if (!req.files) {
+      return res.status(StatusCodes.NOT_FOUND).send({ msg: "找不到檔案" });
     }
-    // returing the response with file path and name
-    return res.send({ name: myFile.name, path: storePath });
-  });
+    // accessing the file
+    const myFile = req.files.file;
+    const storePath = path.join(__dirname, dirName, myFile.name);
+    //  mv() method places the file inside public directory
+    myFile.mv(storePath, function (err) {
+      if (err) {
+        console.error(err);
+        return res
+          .status(StatusCodes.INTERNAL_SERVER_ERROR)
+          .send({ msg: "發生錯誤" });
+      }
+      // returing the response with file path and name
+      return res.send({ name: myFile.name, path: storePath });
+    });
+  } else {
+    res.status(StatusCodes.BAD_REQUEST).send({});
+  }
 });
 
 app.post("/login", (req, res) => {
@@ -64,10 +69,7 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  if (isEmpty(req.headers.authorization) || !req.headers.authorization.startsWith("Bearer ")) {
-    console.warn('No Authorization header found', req.headers.authorization)
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  } else {
+  if (utils.authenticate(req.headers.authorization)) {
     const worker = new Worker("./workers/logout.js");
     // listen to message to wait response from worker
     worker.on("message", (data) => {
@@ -75,14 +77,13 @@ app.post("/logout", (req, res) => {
     });
     // send authorization header to worker
     worker.postMessage(req.headers.authorization);
+  } else {
+    res.status(StatusCodes.BAD_REQUEST).send({});
   }
 });
 
 app.get("/me", (req, res) => {
-  if (isEmpty(req.headers.authorization) || !req.headers.authorization.startsWith("Bearer ")) {
-    console.warn('No Authorization header found', req.headers.authorization)
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  } else {
+  if (utils.authenticate(req.headers.authorization)) {
     const worker = new Worker("./workers/me.js");
     // listen to message to wait response from worker
     worker.on("message", (user) => {
@@ -90,21 +91,36 @@ app.get("/me", (req, res) => {
     });
     // send authorization header to worker
     worker.postMessage(req.headers.authorization);
+  } else {
+    res.status(StatusCodes.BAD_REQUEST).send({});
   }
 });
 
 app.post("/add", (req, res) => {
-  if (isEmpty(req.headers.authorization) || !req.headers.authorization.startsWith("Bearer ")) {
-    console.warn('No Authorization header found', req.headers.authorization)
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  } else {
+  if (utils.authenticate(req.headers.authorization)) {
     const worker = new Worker("./workers/add.js");
     // listen to message to wait response from worker
     worker.on("message", (data) => {
-      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.UNAUTHORIZED : StatusCodes.OK).send({ ...data });
+      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
     });
     // post data
     worker.postMessage(req.body);
+  } else {
+    res.status(StatusCodes.BAD_REQUEST).send({});
+  }
+})
+
+app.post("/search", (req, res) => {
+  if (utils.authenticate(req.headers.authorization)) {
+    const worker = new Worker("./workers/search.js");
+    // listen to message to wait response from worker
+    worker.on("message", (data) => {
+      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
+    });
+    // post data
+    worker.postMessage(req.body);
+  } else {
+    res.status(StatusCodes.BAD_REQUEST).send({});
   }
 })
 
