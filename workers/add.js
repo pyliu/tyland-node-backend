@@ -62,6 +62,7 @@ parentPort.on("message", async (postBody) => {
           response.message = message;
           response.payload = result;
         } else {
+          config.isDev && console.log(__basename, "⚠ 案件已存在，無法新增‼");
           response.statusCode = config.statusCode.FAIL_DUPLICATED;
           response.message = "⚠ 案件已存在!";
           response.payload = caseFilter;
