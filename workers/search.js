@@ -31,10 +31,11 @@ parentPort.on("message", async (postBody) => {
       response.message = message;
       response.payload = postBody;
     } else {
-      const cases = [];
-      await cursor.forEach((element) => {
-        cases.push(element);
-      });
+      // const cases = [];
+      // await cursor.forEach((element) => {
+      //   cases.push(element);
+      // });
+      const cases = await cursor.toArray();
       const message = `🟢 找到 ${count} 案件`;
       config.isDev && console.log(__basename, message);
       response.statusCode = config.statusCode.SUCCESS;
