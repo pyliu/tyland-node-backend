@@ -124,6 +124,22 @@ app.post("/search", (req, res) => {
   }
 })
 
+
+app.post("/user", (req, res) => {
+  if (utils.authenticate(req.headers.authorization)) {
+    const worker = new Worker("./workers/user.js");
+    // listen to message to wait response from worker
+    worker.on("message", (data) => {
+      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
+    });
+    // post data
+    worker.postMessage(req.body);
+  } else {
+    res.status(StatusCodes.BAD_REQUEST).send({});
+  }
+})
+
+
 const SERVER_PORT = process.env.PORT || 4500;
 app.listen(SERVER_PORT, () => {
   console.log(`server is running at port ${SERVER_PORT}`);
