@@ -30,9 +30,10 @@ parentPort.on("message", async (postBody) => {
     const result = await caseCollection.updateOne(caseFilter, { $set: { ...updateData } });
     config.isDev && console.log(__basename, "✏ 執行結果", result);
     if (result.acknowledged) {
-      const statusCode = result.acknowledged ? config.statusCode.SUCCESS : config.statusCode.FAIL;
-      let message =  result.acknowledged ? `✔ 更新案件資料成功。` : "❌ 更新案件失敗!";
+      let statusCode = result.acknowledged ? config.statusCode.SUCCESS : config.statusCode.FAIL;
+      let message =  result.modifiedCount === 0 ? "⚠ 沒有更新案件!" : `✔ 更新案件資料成功。`;
       message = `${message} (找到 ${result.matchedCount} 筆，更新 ${result.modifiedCount} 筆)`;
+      statusCode = result.modifiedCount === 0 ? config.statusCode.FAIL_NOT_CHANGED : statusCode;
 
       config.isDev && console.log(__basename, message);
 
@@ -41,7 +42,7 @@ parentPort.on("message", async (postBody) => {
       response.payload = result;
     } else {
       config.isDev && console.log(__basename, "⚠ 更新案件失敗‼");
-      response.statusCode = config.statusCode.FAIL_;
+      response.statusCode = config.statusCode.FAIL;
       response.message = "⚠ 更新案件失敗‼";
       response.payload = { ...caseFilter, ...updateData };
     }
