@@ -25,7 +25,7 @@ parentPort.on("message", async (postBody) => {
     limit && cursor.limit(limit);
     const count = await cursor.count();
     if (count === 0) {
-      const message =  "❔ 找不到資料。";
+      const message =  "⚠ 找不到資料。";
       config.isDev && console.log(__basename, message);
       response.statusCode = config.statusCode.FAIL_NOT_FOUND;
       response.message = message;
