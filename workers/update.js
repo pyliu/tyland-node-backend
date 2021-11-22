@@ -3,7 +3,7 @@ const __basename = path.basename(__filename);
 const isEmpty = require("lodash/isEmpty");
 const { parentPort } = require("worker_threads");
 const config = require(path.join(__dirname, "..", "model", "config"));
-const MongoClient = require("mongodb").MongoClient;
+const { ObjectId, MongoClient } = require("mongodb");
 
 parentPort.on("message", async (postBody) => {
   config.isDev && console.log("收到更新案件訊息", postBody);
@@ -17,17 +17,11 @@ parentPort.on("message", async (postBody) => {
     await client.connect();
     config.isDev && console.log(__basename, "👌 已通過認證，繼續執行更新案件 ... ");
     const caseCollection = client.db().collection(config.caseCollection);
-    const caseFilter = {
-      year: postBody.year,
-      code: postBody.code,
-      num: postBody.num,
-      creator: postBody.creator
-    };
     const updateData = {
       section: postBody.section,
       opdate: postBody.opdate
     }
-    const result = await caseCollection.updateOne(caseFilter, { $set: { ...updateData } });
+    const result = await caseCollection.updateOne({_id: new ObjectId(postBody._id)}, { $set: { ...updateData } });
     config.isDev && console.log(__basename, "✏ 執行結果", result);
     if (result.acknowledged) {
       let statusCode = result.acknowledged ? config.statusCode.SUCCESS : config.statusCode.FAIL;

@@ -36,6 +36,10 @@ parentPort.on("message", async (postBody) => {
       //   cases.push(element);
       // });
       const cases = await cursor.toArray();
+      // also send hex object id back 
+      cases.forEach(element => {
+        element._id = element._id.toString();
+      });
       const message = `🟢 找到 ${count} 案件`;
       config.isDev && console.log(__basename, message);
       response.statusCode = config.statusCode.SUCCESS;
