@@ -37,6 +37,10 @@ parentPort.on("message", async (postBody) => {
       //   cases.push(element);
       // });
       const users = await cursor.toArray();
+      users.forEach((user) => {
+        // replace _id with hex string
+        user._id = user._id.toString();
+      });
       const message = `🟢 找到 ${count} 個使用者`;
       config.isDev && console.log(__basename, message);
       response.statusCode = config.statusCode.SUCCESS;
