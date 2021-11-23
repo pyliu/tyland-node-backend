@@ -17,11 +17,8 @@ parentPort.on("message", async (postBody) => {
     await client.connect();
     config.isDev && console.log(__basename, "👌 已通過認證，繼續執行更新案件 ... ");
     const caseCollection = client.db().collection(config.caseCollection);
-    const updateData = {
-      section: postBody.section,
-      opdate: postBody.opdate
-    }
-    const result = await caseCollection.updateOne({_id: new ObjectId(postBody._id)}, { $set: { ...updateData } });
+    const setData = postBody.setData;
+    const result = await caseCollection.updateOne({_id: new ObjectId(postBody._id)}, { $set: { ...setData } });
     config.isDev && console.log(__basename, "✏ 執行結果", result);
     if (result.acknowledged) {
       let statusCode = result.acknowledged ? config.statusCode.SUCCESS : config.statusCode.FAIL;
