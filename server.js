@@ -152,6 +152,29 @@ app.post("/user", (req, res) => {
   }
 })
 
+app.get("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
+  if (utils.authenticate(req.headers.authorization)) {
+    /**
+     * expect params e.g.: {
+          "case_id": "110-HA46-000100",
+          "section_code": "0001",
+          "opdate": "2021/11/26",
+          "serial": "1",
+          "distance": "far"
+        }
+     */
+    const worker = new Worker("./workers/mark.js");
+    // listen to message to wait response from worker
+    worker.on("message", (data) => {
+      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
+    });
+    // params data to stream the mark image
+    worker.postMessage(req.params);
+  } else {
+    res.status(StatusCodes.BAD_REQUEST).send({});
+  }
+})
+
 const SERVER_PORT = process.env.PORT || 4500;
 app.listen(SERVER_PORT, () => {
   console.log(`server is running at port ${SERVER_PORT}`);
