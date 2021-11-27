@@ -20,7 +20,6 @@ parentPort.on("message", async (params) => {
     payload: path.join(
       __dirname,
       "..",
-      config.uploadPath,
       "not_found.jpg"
     )
   };
