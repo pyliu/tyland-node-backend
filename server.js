@@ -11,7 +11,7 @@ const { Worker } = require("worker_threads");
 const config = require('./model/config');
 const utils = require('./model/utils');
 
-const dirName = "upload";
+const dirName = config.uploadPath;
 require("./model/initialize")(dirName);
 
 const app = express();
@@ -152,23 +152,15 @@ app.post("/user", (req, res) => {
   }
 })
 
-app.get("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
+app.get("/:case_id/:section_code/:year/:month/:day/:serial/:distance", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
-    /**
-     * expect params e.g.: {
-          "case_id": "110-HA46-000100",
-          "section_code": "0001",
-          "opdate": "2021/11/26",
-          "serial": "1",
-          "distance": "far"
-        }
-     */
     const worker = new Worker("./workers/mark.js");
     // listen to message to wait response from worker
     worker.on("message", (data) => {
-      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
+      isDev && console.log(data);
+      res.status(StatusCodes.OK).sendFile(data.payload);
     });
-    // params data to stream the mark image
+    // params data to generate mark image path
     worker.postMessage(req.params);
   } else {
     res.status(StatusCodes.BAD_REQUEST).send({});
