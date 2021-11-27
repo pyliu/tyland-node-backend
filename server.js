@@ -152,7 +152,7 @@ app.post("/user", (req, res) => {
   }
 })
 
-app.get("/:case_id/:section_code/:year/:month/:day/:serial/:distance", (req, res) => {
+app.get("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
     const worker = new Worker("./workers/mark.js");
     // listen to message to wait response from worker
