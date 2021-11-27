@@ -5,6 +5,7 @@ const express = require("express");
 const fileUpload = require("express-fileupload");
 const cors = require("cors");
 const path = require("path");
+const fs = require("fs");
 const { isEmpty } = require("lodash");
 const StatusCodes = require("http-status-codes").StatusCodes;
 const { Worker } = require("worker_threads");
@@ -12,7 +13,7 @@ const config = require('./model/config');
 const utils = require('./model/utils');
 
 const dirName = config.uploadPath;
-require("./model/initialize")(dirName);
+require("./model/initialize")();
 
 const app = express();
 
@@ -23,31 +24,6 @@ app.use(cors()); // it enables all cors requests
 app.use(fileUpload());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
-// file upload api
-app.post("/upload", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    if (!req.files) {
-      return res.status(StatusCodes.NOT_FOUND).send({ msg: "找不到檔案" });
-    }
-    // accessing the file
-    const myFile = req.files.file;
-    const storePath = path.join(__dirname, dirName, myFile.name);
-    //  mv() method places the file inside public directory
-    myFile.mv(storePath, function (err) {
-      if (err) {
-        console.error(err);
-        return res
-          .status(StatusCodes.INTERNAL_SERVER_ERROR)
-          .send({ msg: "發生錯誤" });
-      }
-      // returing the response with file path and name
-      return res.send({ name: myFile.name, path: storePath });
-    });
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-});
 
 app.post("/login", (req, res) => {
   const postBody = req.body
@@ -167,7 +143,63 @@ app.get("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
   }
 })
 
+// file upload api
+app.post("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
+  if (utils.authenticate(req.headers.authorization)) {
+    if (!req.files) {
+      return res.status(StatusCodes.NOT_FOUND).send({ msg: "找不到上傳的檔案" });
+    }
+    // accessing the file
+    const myFile = req.files.file;
+    const params = req.params;
+    /**
+     * expect params e.g.: {
+          "case_id": "110-HA46-000100",
+          "section_code": "0001",
+          "opdate": "2021-11-27",
+          "serial": "1",
+          "distance": "far"
+        }
+    */
+    const folder = path.join(
+      __dirname,
+      dirName,
+      params.case_id,
+      params.section_code,
+      params.opdate,
+      params.serial
+    );
+    if (!fs.existsSync(folder)) {
+      fs.mkdirSync(folder, { recursive: true });
+    }
+    const storePath = path.join(folder, `${params.distance}.jpg`);
+    //  mv() method places the file inside public directory
+    myFile.mv(storePath, function (err) {
+      if (err) {
+        console.error(err);
+        return res
+          .status(StatusCodes.INTERNAL_SERVER_ERROR)
+          .send({
+            statusCode: config.statusCode.FAIL,
+            message: `⚠ 上傳檔案發生錯誤 (${err.toString()})`
+          });
+      }
+      // returing the response with file path and name
+      return res.status(StatusCodes.OK).send({
+        statusCode: config.statusCode.SUCCESS,
+        message: "✔ 上傳成功",
+        path: storePath
+      });
+    });
+  } else {
+    res.status(StatusCodes.BAD_REQUEST).send({
+      statusCode: config.statusCode.FAIL,
+      message: "請先登入系統❗"
+    });
+  }
+});
+
 const SERVER_PORT = process.env.PORT || 4500;
 app.listen(SERVER_PORT, () => {
-  console.log(`server is running at port ${SERVER_PORT}`);
+  console.log(`伺服器已於 ${SERVER_PORT} 埠號啟動。`);
 });

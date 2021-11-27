@@ -6,8 +6,8 @@ const MongoClient = require("mongodb").MongoClient;
 
 const __basename = path.basename(__filename);
 
-module.exports = async function (dirName) {
-  const uploadDir = path.join(__dirname, "..", dirName);
+module.exports = async function () {
+  const uploadDir = path.join(__dirname, "..", config.uploadPath);
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
   }
