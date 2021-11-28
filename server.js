@@ -5,7 +5,7 @@ const express = require("express");
 const fileUpload = require("express-fileupload");
 const cors = require("cors");
 const path = require("path");
-const fs = require("fs");
+const fs = require("fs-extra");
 const { isEmpty } = require("lodash");
 const StatusCodes = require("http-status-codes").StatusCodes;
 const { Worker } = require("worker_threads");
@@ -169,9 +169,7 @@ app.post("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
       params.opdate,
       params.serial
     );
-    if (!fs.existsSync(folder)) {
-      fs.mkdirSync(folder, { recursive: true });
-    }
+    fs.ensureDirSync(folder);
     const storePath = path.join(folder, `${params.distance}.jpg`);
     //  mv() method places the file inside public directory
     myFile.mv(storePath, function (err) {
