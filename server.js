@@ -149,7 +149,7 @@ app.put("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
     // listen to message to wait response from worker
     worker.on("message", (data) => {
       isDev && console.log(data);
-      es.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send(data);
+      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send(data);
     });
     // params data to generate mark image path
     worker.postMessage({
