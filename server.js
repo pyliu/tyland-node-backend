@@ -23,7 +23,7 @@ app.use(express.static(dirName)); // to access the files in `${dirName}` folder
 app.use(cors()); // it enables all cors requests
 app.use(fileUpload());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.json({limit : 5242880})); // allow maximum 5MB json payload
 
 app.post("/login", (req, res) => {
   const postBody = req.body
@@ -145,7 +145,7 @@ app.get("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
 
 app.put("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/blob.js");
+    const worker = new Worker("./workers/b64.js");
     // listen to message to wait response from worker
     worker.on("message", (data) => {
       isDev && console.log(data);
@@ -153,7 +153,7 @@ app.put("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
     });
     // params data to generate mark image path
     worker.postMessage({
-      body: req.body,
+      b64: req.body.b64,
       params: req.params
     });
   } else {
@@ -203,7 +203,7 @@ app.post("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
       // returing the response with file path and name
       return res.status(StatusCodes.OK).send({
         statusCode: config.statusCode.SUCCESS,
-        message: "✔ 上傳成功",
+        message: "✔ 上傳界標影像原始檔成功",
         path: storePath
       });
     });
