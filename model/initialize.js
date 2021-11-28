@@ -1,4 +1,4 @@
-const fs = require("fs");
+const fs = require("fs-extra");
 const path = require("path");
 const isEmpty = require("lodash/isEmpty");
 const config = require(path.join(__dirname, "config.js"));
@@ -7,11 +7,7 @@ const MongoClient = require("mongodb").MongoClient;
 const __basename = path.basename(__filename);
 
 module.exports = async function () {
-  const uploadDir = path.join(__dirname, "..", config.uploadPath);
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-  }
-
+  fs.ensureDirSync(path.join(__dirname, "..", config.uploadPath));
   const client = new MongoClient(config.connUri);
   try {
     await client.connect();

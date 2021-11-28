@@ -1,3 +1,4 @@
+const fs = require("fs-extra");
 const path = require("path");
 const __basename = path.basename(__filename);
 const isEmpty = require("lodash/isEmpty");
@@ -42,6 +43,45 @@ parentPort.on("message", async (postBody) => {
         response.statusCode = statusCode;
         response.message = message;
         response.payload = result;
+
+        // if the section/opdate changed, the mark images need to be moved to new position
+        if (
+          (setData.section && (setData.section !== caseData.origSection))
+          ||
+          (setData.opdate && (setData.opdate !== caseData.origOpdate))
+        ) {
+          const baseFolder = path.join(
+            __dirname,
+            "..",
+            config.uploadPath,
+            `${caseData.year}-${caseData.code}-${caseData.num}`
+          );
+          const dest = path.join(
+            baseFolder,
+            setData.section,
+            setData.opdate
+          );
+          fs.ensureDir(dest, (err) => {
+            err && console.error(err);
+            const src = path.join(
+              baseFolder,
+              caseData.origSection,
+              caseData.origOpdate
+            );
+            const dirs = fs.readdirSync(src, { withFileTypes: true })
+              .filter(dirent => dirent.isDirectory())
+              .map(dirent => dirent.name);
+            dirs.forEach((theDir, idx, arr) => {
+              const srcDir = path.join(src, theDir);
+              const destDir = path.join(dest, theDir);
+              fs.move(srcDir, destDir, (err) => {
+                if (err) return console.error(err);
+                config.isDev && console.log(`${srcDir} → ${destDir}`);
+              });
+            });
+          });
+          // fs.moveSync(src, dest, { overwrite: true });
+        }
       } else {
         config.isDev && console.log(__basename, "⚠ 更新案件失敗‼");
         response.statusCode = config.statusCode.FAIL;
