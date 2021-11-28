@@ -129,7 +129,7 @@ app.post("/user", (req, res) => {
 })
 
 app.get("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
+  // if (utils.authenticate(req.headers.authorization)) {
     const worker = new Worker("./workers/mark.js");
     // listen to message to wait response from worker
     worker.on("message", (data) => {
@@ -138,6 +138,24 @@ app.get("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
     });
     // params data to generate mark image path
     worker.postMessage(req.params);
+  // } else {
+  //   res.status(StatusCodes.BAD_REQUEST).send({});
+  // }
+})
+
+app.put("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
+  if (utils.authenticate(req.headers.authorization)) {
+    const worker = new Worker("./workers/blob.js");
+    // listen to message to wait response from worker
+    worker.on("message", (data) => {
+      isDev && console.log(data);
+      es.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send(data);
+    });
+    // params data to generate mark image path
+    worker.postMessage({
+      body: req.body,
+      params: req.params
+    });
   } else {
     res.status(StatusCodes.BAD_REQUEST).send({});
   }
