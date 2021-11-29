@@ -15,7 +15,7 @@ parentPort.on("message", async (params) => {
    */
   const response = {
     statusCode: config.statusCode.FAIL,
-    message: "刪除界標資料夾失敗",
+    message: "⚠ 刪除界標資料夾失敗",
     payload: undefined
   };
   try {
@@ -32,12 +32,12 @@ parentPort.on("message", async (params) => {
     if (existed) {
       fs.removeSync(dirpath)
       response.statusCode = config.statusCode.SUCCESS;
-      response.message = `界標檔案資料夾已移除 ▶ (${dirpath})`);
+      response.message = `✔ 界標檔案資料夾已移除 ▶ (${dirpath})`;
       response.payload = dirpath;
     }
   } catch (e) {
     response.message = e.toString();
-    console.error(__basename, '❗ 處理登入執行期間錯誤', e);
+    console.error(__basename, '❗ 處理刪除界標影像資料執行期間錯誤', e);
   } finally {
     parentPort.postMessage(response);
   }

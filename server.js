@@ -152,7 +152,7 @@ app.delete("/:case_id/:section_code/:opdate/:serial", (req, res) => {
       res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send(data);
     });
     // params data to generate mark dir path
-    worker.postMessage({ params: req.params });
+    worker.postMessage(req.params);
   } else {
     res.status(StatusCodes.BAD_REQUEST).send({});
   }
