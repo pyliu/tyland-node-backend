@@ -143,6 +143,21 @@ app.get("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
   // }
 })
 
+app.delete("/:case_id/:section_code/:opdate/:serial", (req, res) => {
+  if (utils.authenticate(req.headers.authorization)) {
+    const worker = new Worker("./workers/delete.js");
+    // listen to message to wait response from worker
+    worker.on("message", (data) => {
+      isDev && console.log(data);
+      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send(data);
+    });
+    // params data to generate mark image path
+    worker.postMessage({ params: req.params });
+  } else {
+    res.status(StatusCodes.BAD_REQUEST).send({});
+  }
+})
+
 app.put("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
     const worker = new Worker("./workers/b64.js");
