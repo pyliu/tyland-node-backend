@@ -100,9 +100,23 @@ app.post("/update", (req, res) => {
   }
 })
 
-app.post("/search", (req, res) => {
+app.post("/search/case", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
     const worker = new Worker("./workers/search.js");
+    // listen to message to wait response from worker
+    worker.on("message", (data) => {
+      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
+    });
+    // post data
+    worker.postMessage(req.body);
+  } else {
+    res.status(StatusCodes.BAD_REQUEST).send({});
+  }
+})
+
+app.post("/search/creator", (req, res) => {
+  if (utils.authenticate(req.headers.authorization)) {
+    const worker = new Worker("./workers/creator.js");
     // listen to message to wait response from worker
     worker.on("message", (data) => {
       res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
@@ -129,7 +143,7 @@ app.post("/user", (req, res) => {
 })
 
 app.get("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
-  // if (utils.authenticate(req.headers.authorization)) {
+  if (utils.authenticate(req.headers.authorization)) {
     const worker = new Worker("./workers/mark.js");
     // listen to message to wait response from worker
     worker.on("message", (data) => {
@@ -138,9 +152,9 @@ app.get("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
     });
     // params data to generate mark image path
     worker.postMessage(req.params);
-  // } else {
-  //   res.status(StatusCodes.BAD_REQUEST).send({});
-  // }
+  } else {
+    res.status(StatusCodes.BAD_REQUEST).send({});
+  }
 })
 
 app.delete("/:case_id/:section_code/:opdate/:serial", (req, res) => {
