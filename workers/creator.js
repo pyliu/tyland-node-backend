@@ -17,19 +17,67 @@ parentPort.on("message", async (postBody) => {
     config.isDev && console.log(__basename, "👌 繼續執行搜尋界標資料 BY 上傳者 ... ", postBody);
     const caseCollection = client.db().collection(config.caseCollection);
     
+    // const match = {
+    //   "lands.marks" : {
+    //     $elemMatch : { $and : [] }
+    //   }
+    // }
+    
+    // if (postBody.opdate) {
+    //   match["lands.marks"].$elemMatch.$and.push({ opdate: postBody.opdate });
+    // }
+    // if (postBody.uploader) {
+    //   match["lands.marks"].$elemMatch.$and.push({ creator: postBody.uploader });
+    // }
+
+    // const cursor = caseCollection.aggregate([
+    //   { $match : match },
+    //   {
+    //      $project : {
+    //          "lands.marks" : {
+    //             $filter : {
+    //                input : "lands.$marks",
+    //                as : "marks",
+    //                cond : {
+    //                   $and : [
+    //                      { "$eq" : [ "$marks.opdate", postBody.opdate ] },
+    //                      { "$eq" : [ "$marks.uploader", postBody.uploader ] }
+    //                   ]
+    //                }
+    //             }
+    //          }
+    //      }
+    //   },
+    //   { $sort: { _id: -1 } }
+    // ]);
+
+
+
     const limit = postBody.limit || 0;
     delete postBody.limit;
     // prepare search criteria
-    const criteria = {};
+    const criteria = {
+      "lands.marks": { $elemMatch: { } }
+    };
     if (postBody.opdate) {
-        criteria["lands.marks.opdate"] = postBody.opdate;
+        criteria["lands.marks"].$elemMatch.opdate = postBody.opdate;
     }
     if (postBody.uploader) {
-        criteria["lands.marks.creator"] = postBody.uploader;
+        criteria["lands.marks"].$elemMatch.creator = postBody.uploader;
     }
     
     const cursor = await caseCollection.find(
-      criteria
+      criteria,
+      {
+        _id: 0,
+        year: 0,
+        code: 0,
+        num: 0,
+        opdate: 0,
+        section: 0,
+        creator: 0,
+        lands: { marks: 1 }
+      }
     ).sort({_id: -1});
     limit && cursor.limit(limit);
     const count = await cursor.count();
@@ -44,16 +92,18 @@ parentPort.on("message", async (postBody) => {
       // await cursor.forEach((element) => {
       //   cases.push(element);
       // });
+      const marks = [];
       const cases = await cursor.toArray();
-      // also send hex object id back 
       cases.forEach(element => {
-        element._id = element._id.toString();
+        element.lands?.forEach(land => {
+          land.marks?.forEach(mark => marks.push(mark));
+        });
       });
-      const message = `🟢 找到 ${count} 筆資料`;
+      const message = `🟢 找到 ${marks.length} 筆界標資料`;
       config.isDev && console.log(__basename, message);
       response.statusCode = config.statusCode.SUCCESS;
       response.message = message;
-      response.payload = cases;
+      response.payload = marks;
     }
   } catch (e) {
     console.error(__basename, "❗ 處理搜尋執行期間錯誤", e);
