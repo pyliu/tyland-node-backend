@@ -51,20 +51,19 @@ parentPort.on("message", async (postBody) => {
     //   { $sort: { _id: -1 } }
     // ]);
 
-
-
     const limit = postBody.limit || 0;
     delete postBody.limit;
+
     // prepare search criteria
-    const criteria = {
-      "lands.marks": { $elemMatch: { } }
-    };
+    const criteria = {};
     if (postBody.opdate) {
-        criteria["lands.marks"].$elemMatch.opdate = postBody.opdate;
+      criteria["lands.marks.opdate"] = postBody.opdate;
     }
     if (postBody.uploader) {
-        criteria["lands.marks"].$elemMatch.creator = postBody.uploader;
+      criteria["lands.marks.creator"] = postBody.uploader;
     }
+
+    config.isDev && console.log(criteria);
     
     const cursor = await caseCollection.find(
       criteria,
@@ -96,7 +95,26 @@ parentPort.on("message", async (postBody) => {
       const cases = await cursor.toArray();
       cases.forEach(element => {
         element.lands?.forEach(land => {
-          land.marks?.forEach(mark => marks.push(mark));
+          land.marks?.forEach((mark) => {
+            if (postBody.opdate && postBody.uploader) {
+              if (mark.opdate === postBody.opdate && mark.creator === postBody.uploader) {
+                marks.push(mark);
+                return;
+              }
+            }
+            if (postBody.opdate) {
+              if (mark.opdate === postBody.opdate) {
+                marks.push(mark);
+                return;
+              }
+            }
+            if (postBody.uploader) {
+              if (mark.creator === postBody.uploader) {
+                marks.push(mark);
+                return;
+              }
+            }
+          });
         });
       });
       const message = `🟢 找到 ${marks.length} 筆界標資料`;
