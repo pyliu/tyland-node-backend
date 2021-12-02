@@ -142,7 +142,7 @@ app.post("/user", (req, res) => {
   }
 })
 
-app.get("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
+app.get("/:case_id/:section_code/:opdate/:land_number/:serial/:distance", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
     const worker = new Worker("./workers/mark.js");
     // listen to message to wait response from worker
@@ -157,7 +157,7 @@ app.get("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
   }
 })
 
-app.delete("/:case_id/:section_code/:opdate/:serial", (req, res) => {
+app.delete("/:case_id/:section_code/:opdate/:land_number/:serial", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
     const worker = new Worker("./workers/delete.js");
     // listen to message to wait response from worker
@@ -172,7 +172,7 @@ app.delete("/:case_id/:section_code/:opdate/:serial", (req, res) => {
   }
 })
 
-app.put("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
+app.put("/:case_id/:section_code/:opdate/:land_number/:serial/:distance", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
     const worker = new Worker("./workers/b64.js");
     // listen to message to wait response from worker
@@ -191,7 +191,7 @@ app.put("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
 })
 
 // file upload api
-app.post("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
+app.post("/:case_id/:section_code/:opdate/:land_number/:serial/:distance", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
     if (!req.files) {
       return res.status(StatusCodes.NOT_FOUND).send({ msg: "找不到上傳的檔案" });
@@ -214,6 +214,7 @@ app.post("/:case_id/:section_code/:opdate/:serial/:distance", (req, res) => {
       params.case_id,
       params.section_code,
       params.opdate,
+      params.land_number,
       params.serial
     );
     fs.ensureDirSync(folder);

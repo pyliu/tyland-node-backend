@@ -26,6 +26,7 @@ parentPort.on("message", async (params) => {
       params.case_id,
       params.section_code,
       params.opdate,
+      params.land_number,
       params.serial
     );
     const existed = fs.existsSync(dirpath);

@@ -22,6 +22,7 @@ parentPort.on("message", async (inData) => {
       params.case_id,
       params.section_code,
       params.opdate,
+      params.land_number,
       params.serial
     );
     fs.ensureDirSync(folder);
