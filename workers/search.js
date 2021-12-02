@@ -20,7 +20,7 @@ parentPort.on("message", async (postBody) => {
     
     const limit = postBody.limit || 0;
     delete postBody.limit;
-    
+
     const cursor = await caseCollection.find(postBody).sort({_id: -1});
     limit && cursor.limit(limit);
     const count = await cursor.count();

@@ -13,6 +13,8 @@ parentPort.on("message", async (postBody) => {
     message: "未知的錯誤",
     payload: undefined
   };
+  // force set section as string
+  postBody.section= postBody.section.toString();
   try {
     await client.connect();
     config.isDev && console.log(__basename, "👌 已通過認證，繼續執行新增案件 ... ");
