@@ -74,9 +74,13 @@ parentPort.on("message", async (postBody) => {
             dirs.forEach((theDir, idx, arr) => {
               const srcDir = path.join(src, theDir);
               const destDir = path.join(dest, theDir);
-              fs.move(srcDir, destDir, (err) => {
+              fs.copy(srcDir, destDir, { overwrite: true }, (err) => {
                 if (err) return console.error(err);
-                config.isDev && console.log(`${srcDir} → ${destDir}`);
+                config.isDev && console.log(`${theDir} → ${destDir}`, "複製成功");
+                fs.remove(srcDir, err => {
+                  if (err) return console.error(err)
+                  console.log(srcDir, "移除成功");
+                })
               });
             });
           });
