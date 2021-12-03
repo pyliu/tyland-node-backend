@@ -142,6 +142,20 @@ app.post("/user", (req, res) => {
   }
 })
 
+app.get("/user/:user_id", (req, res) => {
+  if (utils.authenticate(req.headers.authorization)) {
+    const worker = new Worker("./workers/user.js");
+    // listen to message to wait response from worker
+    worker.on("message", (data) => {
+      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
+    });
+    // post data
+    worker.postMessage({ id: req.params.user_id });
+  } else {
+    res.status(StatusCodes.BAD_REQUEST).send({});
+  }
+})
+
 app.get("/:case_id/:section_code/:opdate/:land_number/:serial/:distance", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
     const worker = new Worker("./workers/mark.js");
