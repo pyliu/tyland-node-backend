@@ -8,7 +8,7 @@ const MongoClient = require('mongodb').MongoClient;
 
 parentPort.on("message", async (loginInfo) => {
 
-  const data = { loggedIn: false, token: 'UNAUTHORIZED' };
+  const data = { loggedIn: false, token: 'UNAUTHORIZED', message: "登入失敗" };
   config.isDev && console.log(__basename, '👉 login worker 設定初始回應資料', data);
 
   const client = new MongoClient(config.connUri);
@@ -17,10 +17,18 @@ parentPort.on("message", async (loginInfo) => {
     config.isDev && console.log(__basename, '✔ DB已連線');
     const userCollection = client.db().collection(config.userCollection);
     const user = await userCollection.findOne({ id: loginInfo.userid });
-    if (!isEmpty(user)) {
+    if (isEmpty(user)) {
+      data.message = '❌ 登入失敗(找不到使用者)';
+      config.isDev && console.log(__basename, data.message, { id: loginInfo.userid });
+    } else {
       config.isDev && console.log(__basename, '✔ 找到使用者資料', user);
-      if (user && user.pwd === md5(loginInfo.password)) {
-        config.isDev && console.log(__basename, '✔ 登入成功');
+      const authority = parseInt(user.authority) || 0;
+      if ((authority & 2) === 2) {
+        data.message = '⚠ 帳戶已停用';
+        config.isDev && console.log(__basename, data.message, { id: loginInfo.userid });
+      } else if (user && user.pwd === md5(loginInfo.password)) {
+        data.message = '✔ 登入成功';
+        config.isDev && console.log(__basename, data.message);
         data.loggedIn = true;
         data.token = md5(+new Date() + loginInfo.userid);
         const token = {
@@ -30,10 +38,9 @@ parentPort.on("message", async (loginInfo) => {
         const result = await userCollection.updateOne({ id: loginInfo.userid }, { $set: { token: token } });
         config.isDev && console.log(__basename, `${loginInfo.userid} 文件已更新`, `找到 ${result.matchedCount} 個文件, 更新 ${result.modifiedCount} 個文件`, token);
       } else {
-        config.isDev && console.log(__basename, '❌ 登入失敗(密碼不對)', { id: loginInfo.userid });
+        data.message = '❌ 登入失敗(密碼不對)';
+        config.isDev && console.log(__basename, data.message, { id: loginInfo.userid });
       }
-    } else {
-      config.isDev && console.log(__basename, '❌ 登入失敗(找不到使用者)', { id: loginInfo.userid });
     }
   } catch (e) {
     console.error(__basename, '❗ 處理登入執行期間錯誤', e);
