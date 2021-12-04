@@ -58,7 +58,7 @@ const authenticate = async function (authHeader) {
       const authority = parseInt(user.authority) || 0;
       if ((authority & 2) === 2) {
         data.message = '⚠ 帳戶已停用';
-        config.isDev && console.log(__basename, "🔴 ⚠ 帳戶已停用!", hash);
+        config.isDev && console.log(__basename, "🔴 ⚠ 帳戶已停用!", user.id, user.name);
         return false;
       }
       config.isDev && console.log(__basename, "🔎 檢查 token 是否已過期", hash);

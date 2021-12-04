@@ -19,8 +19,13 @@ parentPort.on("message", async (authorizationHeader) => {
     if (isEmpty(user)) {
       config.isDev && console.log(__basename, '❌ 找不到使用者資料', tokenFilter);
     } else {
-      config.isDev && console.log(__basename, '✔ 找到使用者資料', tokenFilter);
-      userDoc = { ...user };
+      const authority = parseInt(user.authority) || 0;
+      if ((authority & 2) === 2) {
+        config.isDev && console.log(__basename, "⚠ 帳戶已停用!", user.id, user.name);
+      } else {
+        config.isDev && console.log(__basename, '✔ 找到使用者資料', tokenFilter);
+        userDoc = { ...user };
+      }
     }
   } catch (e) {
     console.error(__basename, '❗ 處理登入執行期間錯誤', e);
