@@ -35,6 +35,10 @@ parentPort.on("message", async (params) => {
       response.statusCode = config.statusCode.SUCCESS;
       response.message = `✔ 界標檔案資料夾已移除 ▶ (${dirpath})`;
       response.payload = dirpath;
+    } else {
+      response.statusCode = config.statusCode.SUCCESS;
+      response.message = `⛔ 界標檔案資料夾不存在，無須刪除。`;
+      response.payload = dirpath;
     }
   } catch (e) {
     response.message = e.toString();
