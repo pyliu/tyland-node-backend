@@ -86,6 +86,20 @@ app.post("/add", (req, res) => {
   }
 })
 
+app.delete("/case/:case_id/:section_code/:opdate", (req, res) => {
+  if (utils.authenticate(req.headers.authorization)) {
+    const worker = new Worker("./workers/deleteCase.js");
+    // listen to message to wait response from worker
+    worker.on("message", (data) => {
+      isDev && console.log(data);
+      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send(data);
+    });
+    worker.postMessage({ params: req.params, oid: req.body._id });
+  } else {
+    res.status(StatusCodes.BAD_REQUEST).send({});
+  }
+})
+
 app.post("/update", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
     const worker = new Worker("./workers/update.js");
