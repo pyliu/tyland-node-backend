@@ -10,7 +10,7 @@ module.exports = {
     cron_restart: '0 7 * * *',
     time: true,
     watch: true,
-    ignore_watch: ['[/\\]./', 'node_modules', '.git'],
+    ignore_watch: ['[/\\]./', 'node_modules', '.git', 'upload'],
     max_memory_restart: '512M',
     env: {
       NODE_ENV: 'production'
