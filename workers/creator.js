@@ -58,8 +58,7 @@ parentPort.on("message", async (postBody) => {
     const cursor = await caseCollection.aggregate(agg);
     const docs = await cursor.toArray();
 
-    const marks = [];
-    docs.forEach(document => marks.push({ ...document.mark }));
+    const marks = docs.map(document => { return { ...document.mark }; });
     
     const message = `🟢 找到 ${marks.length} 筆界標資料`;
     config.isDev && console.log(__basename, message);
