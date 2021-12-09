@@ -2,7 +2,7 @@ module.exports = {
   apps: [{
     name: 'tyland-sur-be',
     exec_mode: 'cluster',
-    instances: 2,
+    instances: 4,
     script: './server.js',
     args: 'start',
     out_file: '../logs/tyland-node-backend_out.log',
