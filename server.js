@@ -2,6 +2,7 @@ require('dotenv').config()
 const isDev = process.env.NODE_ENV !== 'production';
 const compression = require("compression");
 const express = require("express");
+const https = require('https');
 const fileUpload = require("express-fileupload");
 const cors = require("cors");
 const path = require("path");
@@ -14,6 +15,7 @@ const utils = require('./model/utils');
 
 const dirName = config.uploadPath;
 require("./model/initialize")();
+
 
 const app = express();
 
@@ -301,7 +303,17 @@ app.post("/:case_id/:section_code/:opdate/:land_number/:serial/:distance", (req,
   }
 });
 
-const SERVER_PORT = process.env.PORT || 4500;
-app.listen(SERVER_PORT, () => {
-  console.log(`伺服器已於 ${SERVER_PORT} 埠號啟動。`);
+const privateKey  = fs.readFileSync(path.resolve(__dirname, 'key', config.isProd ? 'server.key' : 'localhost-key.pem'));
+const certificate = fs.readFileSync(path.resolve(__dirname, 'key', config.isProd ? 'server.crt' : 'localhost.pem'));
+const credentials = { key: privateKey, cert: certificate};
+
+const httpsServer = https.createServer(credentials, app);
+
+httpsServer.listen(process.env.PORT || 4500, () => {
+  console.log(`伺服器已於 ${process.env.PORT || 4500} 埠號啟動。`);
 });
+
+// const SERVER_PORT = process.env.PORT || 4500;
+// app.listen(SERVER_PORT, () => {
+//   console.log(`伺服器已於 ${SERVER_PORT} 埠號啟動。`);
+// });
