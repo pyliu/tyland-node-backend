@@ -16,7 +16,6 @@ const utils = require('./model/utils');
 const dirName = config.uploadPath;
 require("./model/initialize")();
 
-
 const app = express();
 
 // middle ware
