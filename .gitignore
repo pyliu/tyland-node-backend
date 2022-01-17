@@ -3,6 +3,7 @@ node_modules
 /dist
 /upload
 /key
+/app
 
 # local env files
 .env.local
