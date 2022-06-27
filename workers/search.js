@@ -20,6 +20,12 @@ parentPort.on("message", async (postBody) => {
     
     const limit = postBody.limit || 0;
     delete postBody.limit;
+    // support multiple sites querying
+    if (postBody.code?.startsWith('^')) {
+      postBody.code = new RegExp(postBody.code, 'g');
+    }
+
+    config.isDev && console.log(__basename, `limit: ${limit} code: ${postBody.code}`);
 
     const cursor = await caseCollection.find(postBody).sort({_id: -1});
     limit && cursor.limit(limit);
