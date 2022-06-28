@@ -30,11 +30,15 @@ parentPort.on("message", async (data) => {
     if (result.deletedCount > 0) {
       response.statusCode = config.statusCode.SUCCESS;
       response.message = `案件 (${params.case_id}, ${params.section_code}, ${params.opdate}) 已移除。`
+      // extract site info from code value
+      const code = params.case_id.split('-')[1];
+      const site = code.substring(0, 2);
       // 移除界標檔案
       const dirpath = path.join(
         __dirname,
         "..",
         config.uploadPath,
+        site,
         params.case_id,
         params.section_code,
         params.opdate

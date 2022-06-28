@@ -34,7 +34,6 @@ parentPort.on("message", async (params) => {
       params.serial
     );
     const existed = fs.existsSync(dirpath);
-    console.log(dirpath, existed);
     if (existed) {
       fs.removeSync(dirpath)
       response.statusCode = config.statusCode.SUCCESS;
