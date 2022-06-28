@@ -15,10 +15,14 @@ parentPort.on("message", async (inData) => {
     payload: undefined,
   };
   try {
+    // extract site info from code value
+    const code = params.case_id.split('-')[1];
+    const site = code.substring(0, 2);
     const folder = path.join(
       __dirname,
       "..",
       config.uploadPath,
+      site,
       params.case_id,
       params.section_code,
       params.opdate,

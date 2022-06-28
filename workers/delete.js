@@ -19,10 +19,14 @@ parentPort.on("message", async (params) => {
     payload: undefined
   };
   try {
+    // extract site info from code value
+    const code = params.case_id.split('-')[1];
+    const site = code.substring(0, 2);
     const dirpath = path.join(
       __dirname,
       "..",
       config.uploadPath,
+      site,
       params.case_id,
       params.section_code,
       params.opdate,
@@ -30,6 +34,7 @@ parentPort.on("message", async (params) => {
       params.serial
     );
     const existed = fs.existsSync(dirpath);
+    console.log(dirpath, existed);
     if (existed) {
       fs.removeSync(dirpath)
       response.statusCode = config.statusCode.SUCCESS;

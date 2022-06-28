@@ -265,9 +265,13 @@ app.post("/:case_id/:section_code/:opdate/:land_number/:serial/:distance", (req,
           "distance": "far"
         }
     */
+    // extract site info from code value
+    const code = params.case_id.split('-')[1];
+    const site = code.substring(0, 2);
     const folder = path.join(
       __dirname,
       dirName,
+      site,
       params.case_id,
       params.section_code,
       params.opdate,

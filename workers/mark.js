@@ -24,11 +24,14 @@ parentPort.on("message", async (params) => {
     )
   };
   try {
+    // extract site info from code value
+    const code = params.case_id.split('-')[1];
+    const site = code.substring(0, 2);
     const filepath = path.join(
       __dirname,
       "..",
       config.uploadPath,
-      `/${params.case_id}/${params.section_code}/${params.opdate}/${params.land_number}/${params.serial}/${params.distance}.jpg`
+      `/${site}/${params.case_id}/${params.section_code}/${params.opdate}/${params.land_number}/${params.serial}/${params.distance}.jpg`
     );
     const existed = fs.existsSync(filepath);
     response.statusCode = existed ? config.statusCode.SUCCESS : config.statusCode.FAIL;
