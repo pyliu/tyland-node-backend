@@ -19,6 +19,10 @@ parentPort.on("message", async (postBody) => {
 
     const limit = postBody.limit || 0;
     delete postBody.limit;
+    // support multiple sites uploader querying
+    if (postBody.uploader?.startsWith('^')) {
+      postBody.uploader = new RegExp(postBody.uploader, 'g');
+    }
 
     // prepare search criteria
     const criteria = {};
