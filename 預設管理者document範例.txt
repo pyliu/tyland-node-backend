@@ -1,0 +1,14 @@
+/** 
+* Paste one or more documents here
+*/
+{
+    "id": "HHADMIN",
+    "name": "HH管理者",
+    "pwd": "2a4c124add170ac85243ab9649aa97f7",
+    "authority": 1,
+    "note": "預設帳號",
+    "token": {
+        "hash": "f5370d6177016b538bd2b8b3412c3563",
+        "expire": 1656415664857
+    }
+}
