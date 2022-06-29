@@ -30,8 +30,7 @@ parentPort.on("message", async (postBody) => {
 
     
     // extract site info from code value
-    const code = caseData.code.split('-')[1];
-    const site = code.substring(0, 2);
+    const site = caseData.code.substring(0, 2);
 
     if (isEmpty(existed)) {
       const setData = postBody.setData;
