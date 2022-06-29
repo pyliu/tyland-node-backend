@@ -28,6 +28,11 @@ parentPort.on("message", async (postBody) => {
       ...postBody.setData
     });
 
+    
+    // extract site info from code value
+    const code = caseData.code.split('-')[1];
+    const site = code.substring(0, 2);
+
     if (isEmpty(existed)) {
       const setData = postBody.setData;
       const result = await caseCollection.updateOne({_id: new ObjectId(postBody._id)}, { $set: { ...setData } });
@@ -54,6 +59,7 @@ parentPort.on("message", async (postBody) => {
             __dirname,
             "..",
             config.uploadPath,
+            site,
             `${caseData.year}-${caseData.code}-${caseData.num}`
           );
           const dest = path.join(
