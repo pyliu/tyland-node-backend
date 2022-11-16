@@ -247,6 +247,20 @@ app.put("/:case_id/:section_code/:opdate/:land_number/:serial/:distance", (req, 
   }
 })
 
+app.get("/stats/:site_code/uploaded", (req, res) => {
+  if (utils.authenticate(req.headers.authorization)) {
+    const worker = new Worker("./workers/statsUploaded.js");
+    // listen to message to wait response from worker
+    worker.on("message", (data) => {
+      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
+    });
+    // post data
+    worker.postMessage({ site_code: req.params.site_code });
+  } else {
+    res.status(StatusCodes.BAD_REQUEST).send({});
+  }
+})
+
 // file upload api
 app.post("/:case_id/:section_code/:opdate/:land_number/:serial/:distance", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
