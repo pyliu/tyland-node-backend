@@ -325,6 +325,23 @@ app.post("/stats/mongodb/marks/:site_code/:st_date/:ed_date", (req, res) => {
     res.status(StatusCodes.BAD_REQUEST).send({});
   }
 })
+app.post("/stats/mongodb/cases/:site_code/:st_date/:ed_date", (req, res) => {
+  if (utils.authenticate(req.headers.authorization)) {
+    const worker = new Worker("./workers/mongodb/statsCases.js");
+    // listen to message to wait response from worker
+    worker.on("message", (data) => {
+      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
+    });
+    // post data
+    worker.postMessage({
+      site_code: req.params.site_code,
+      st_date: req.params.st_date,
+      ed_date: req.params.ed_date
+    });
+  } else {
+    res.status(StatusCodes.BAD_REQUEST).send({});
+  }
+})
 /**
  * file upload api
  */
