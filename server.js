@@ -261,7 +261,7 @@ app.get("/stats/:site_code/uploaded", (req, res) => {
   }
 })
 
-app.get("/stats/:site_code/uploadedMongoDB", (req, res) => {
+app.get("/stats/mongodb/:site_code/uploaded", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
     const worker = new Worker("./workers/statsUploadedMongoDB.js");
     // listen to message to wait response from worker
