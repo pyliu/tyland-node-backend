@@ -7,6 +7,7 @@ const config = {
   dbPassword: process.env.DB_PASSWORD,
   userCollection: 'user',
   caseCollection: 'case',
+  codeCollection: 'code',
   statusCode: {
     SUCCESS: 1,
     FAIL: 0,
