@@ -347,7 +347,7 @@ app.post("/stats/mongodb/cases/:site_code/:st_date/:ed_date", (req, res) => {
  */
  app.get("/codes/:site_code", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/code/codes.js");
+    const worker = new Worker("./workers/code/getCodes.js");
     // listen to message to wait response from worker
     worker.on("message", (data) => {
       res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
@@ -381,7 +381,7 @@ app.post("/codes/:site_code/:code_id/:code_name", (req, res) => {
  */
 app.get("/sections/:site_code", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/code/sections.js");
+    const worker = new Worker("./workers/code/getSections.js");
     // listen to message to wait response from worker
     worker.on("message", (data) => {
       res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
