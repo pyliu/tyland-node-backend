@@ -343,7 +343,7 @@ app.post("/stats/mongodb/cases/:site_code/:st_date/:ed_date", (req, res) => {
   }
 })
 /**
- * Codes & Sections API
+ * Codes API
  */
  app.get("/codes/:site_code", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
@@ -358,7 +358,28 @@ app.post("/stats/mongodb/cases/:site_code/:st_date/:ed_date", (req, res) => {
     res.status(StatusCodes.BAD_REQUEST).send({});
   }
 })
- app.get("/sections/:site_code", (req, res) => {
+// To create new code entry
+app.post("/codes/:site_code/:code_id/:code_name", (req, res) => {
+ if (utils.authenticate(req.headers.authorization)) {
+   const worker = new Worker("./workers/code/postCode.js");
+   // listen to message to wait response from worker
+   worker.on("message", (data) => {
+     res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
+   });
+   // post data
+   worker.postMessage({
+    site_code: req.params.site_code,
+    code_id: req.params.code_id,
+    code_name: req.params.code_name
+  });
+ } else {
+   res.status(StatusCodes.BAD_REQUEST).send({});
+ }
+})
+/**
+ * Sections API
+ */
+app.get("/sections/:site_code", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
     const worker = new Worker("./workers/code/sections.js");
     // listen to message to wait response from worker
@@ -370,6 +391,24 @@ app.post("/stats/mongodb/cases/:site_code/:st_date/:ed_date", (req, res) => {
   } else {
     res.status(StatusCodes.BAD_REQUEST).send({});
   }
+})
+// To create new section entry
+app.post("/sections/:site_code/:section_id/:section_name", (req, res) => {
+ if (utils.authenticate(req.headers.authorization)) {
+   const worker = new Worker("./workers/code/postSection.js");
+   // listen to message to wait response from worker
+   worker.on("message", (data) => {
+     res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
+   });
+   // post data
+   worker.postMessage({
+    site_code: req.params.site_code,
+    section_id: req.params.section_id,
+    section_name: req.params.section_name
+  });
+ } else {
+   res.status(StatusCodes.BAD_REQUEST).send({});
+ }
 })
 /**
  * file upload api
