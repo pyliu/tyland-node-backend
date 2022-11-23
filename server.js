@@ -368,10 +368,11 @@ app.post("/codes/:site_code/:code_id/:code_name", (req, res) => {
    });
    // post data
    worker.postMessage({
-    site_code: req.params.site_code,
-    code_id: req.params.code_id,
-    code_name: req.params.code_name
-  });
+     site_code: req.params.site_code,
+     code_id: req.params.code_id,
+     code_name: req.params.code_name,
+     post: req.body
+   });
  } else {
    res.status(StatusCodes.BAD_REQUEST).send({});
  }
@@ -402,10 +403,10 @@ app.post("/sections/:site_code/:section_id/:section_name", (req, res) => {
    });
    // post data
    worker.postMessage({
-    site_code: req.params.site_code,
-    section_id: req.params.section_id,
-    section_name: req.params.section_name
-  });
+     site_code: req.params.site_code,
+     section_id: req.params.section_id,
+     section_name: req.params.section_name
+   });
  } else {
    res.status(StatusCodes.BAD_REQUEST).send({});
  }
