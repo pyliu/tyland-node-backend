@@ -7,9 +7,8 @@ const MongoClient = require('mongodb').MongoClient;
 parentPort.on("message", async (data) => {
   const site = data.site_code;
   const id = data.code_id;
-  const name = data.code_name;
   // const postBody = data.post;
-  config.isDev && console.log(`收到新增收件字 ${id} 👉 ${name} 訊息`, data);
+  config.isDev && console.log(`收到刪除收件字 ${id} 訊息`, data);
   const client = new MongoClient(config.connUri);
   let response = {
     statusCode: config.statusCode.FAIL,
@@ -31,24 +30,26 @@ parentPort.on("message", async (data) => {
     ];
     const cursor = await codeCollection.aggregate(agg);
     const HXdoc = await cursor.next();
-    const found = HXdoc.codes.find(code => code.value === id);
-    if (found) {
-      const message =  `⚠ 收件字 ${id} 已存在，無法新增！`;
+    let foundIdx = -1;
+    const found = HXdoc.codes.find((code, idx) => {
+      foundIdx = idx;
+      return code.value === id;
+    });
+    if (!found) {
+      const message =  `⚠ 收件字 ${id} 不存在，無法刪除！`;
       config.isDev && console.log(__basename, message);
       response.statusCode = config.statusCode.FAIL;
       response.message = message;
     } else {
-      HXdoc.codes.push({
-        value: id,
-        text: name
-      });
-
+      // remove found index code
+      HXdoc.codes.splice(foundIdx, 1);
+      // store doc back
       const result = await codeCollection.updateOne({ site: site }, { $set: HXdoc });
 
       config.isDev && console.log(__basename, "✏ 執行結果", result);
       if (result.acknowledged) {
         let statusCode = result.acknowledged ? config.statusCode.SUCCESS : config.statusCode.FAIL;
-        let message =  result.modifiedCount === 0 ? `⚠ 沒有新增收件字 ${id} 👉 ${name} 資料!` : `✔ 新增收件字 ${id} 👉 ${name} 資料成功。`;
+        let message =  result.modifiedCount === 0 ? `⚠ 沒有刪除收件字 ${id} 資料!` : `✔ 刪除收件字 ${id} 資料成功。`;
         message = `${message} (找到 ${result.matchedCount} 筆，更新 ${result.modifiedCount} 筆)`;
         statusCode = result.modifiedCount === 0 ? config.statusCode.FAIL_NOT_CHANGED : statusCode;
         config.isDev && console.log(__basename, message);
@@ -58,7 +59,7 @@ parentPort.on("message", async (data) => {
       }
     }
   } catch (e) {
-    console.error(__basename, '❗ 處理新增收件字資料執行期間錯誤', e);
+    console.error(__basename, '❗ 處理刪除收件字資料執行期間錯誤', e);
   } finally {
     parentPort.postMessage(response);
     await client.close();
