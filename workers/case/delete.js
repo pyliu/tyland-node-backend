@@ -2,7 +2,7 @@ const path = require("path");
 const fs = require("fs-extra");
 const __basename = path.basename(__filename);
 const { parentPort } = require("worker_threads");
-const config = require(path.join(__dirname, "..", "model", "config"));
+const config = require(path.join(__dirname, "..", "..", "model", "config"));
 const { ObjectId, MongoClient } = require("mongodb");
 
 parentPort.on("message", async (data) => {
@@ -36,6 +36,7 @@ parentPort.on("message", async (data) => {
       // 移除界標檔案
       const dirpath = path.join(
         __dirname,
+        "..",
         "..",
         config.uploadPath,
         site,

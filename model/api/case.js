@@ -33,5 +33,20 @@ module.exports.register = (app) => {
     } else {
       res.status(StatusCodes.BAD_REQUEST).send({});
     }
-  })  
+  })
+  // delete case
+  app.delete("/case/:case_id/:section_code/:opdate", (req, res) => {
+    if (utils.authenticate(req.headers.authorization)) {
+      const worker = new Worker(path.join(__dirname, '..', '..', 'workers', 'case', 'delete.js'));
+      // listen to message to wait response from worker
+      worker.on("message", (data) => {
+        config.isDev && console.log("收到刪除案件請求", data);
+        res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send(data);
+      });
+      worker.postMessage({ params: req.params, oid: req.body._id });
+    } else {
+      res.status(StatusCodes.BAD_REQUEST).send({});
+    }
+  })
+
 }
