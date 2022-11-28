@@ -1,6 +1,6 @@
 const path = require("path");
-const config = require(path.join(__dirname, "config"));
-const utils = require(path.join(__dirname, "utils"));
+const config = require(path.join(__dirname, "..", "config"));
+const utils = require(path.join(__dirname, "..", "utils"));
 const { Worker } = require("worker_threads");
 const StatusCodes = require("http-status-codes").StatusCodes;
 
@@ -10,7 +10,7 @@ module.exports.register = (app) => {
    */
   app.get("/sections/:site_code", (req, res) => {
     if (utils.authenticate(req.headers.authorization)) {
-      const worker = new Worker(path.join(__dirname, '..', 'workers', 'code', 'getSections.js'));
+      const worker = new Worker(path.join(__dirname, '..', '..', 'workers', 'code', 'getSections.js'));
       // listen to message to wait response from worker
       worker.on("message", (data) => {
         res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
@@ -24,7 +24,7 @@ module.exports.register = (app) => {
   // To create new section entry
   app.post("/sections/:site_code/:section_id/:section_name", (req, res) => {
    if (utils.authenticate(req.headers.authorization)) {
-     const worker = new Worker(path.join(__dirname, '..', 'workers', 'code', 'postSection.js'));
+     const worker = new Worker(path.join(__dirname, '..', '..', 'workers', 'code', 'postSection.js'));
 
      // listen to message to wait response from worker
      worker.on("message", (data) => {
@@ -43,7 +43,7 @@ module.exports.register = (app) => {
   // To delete section entry
   app.delete("/sections/:site_code/:code_id", (req, res) => {
    if (utils.authenticate(req.headers.authorization)) {
-      const worker = new Worker(path.join(__dirname, '..', 'workers', 'code', 'deleteSection.js'));
+      const worker = new Worker(path.join(__dirname, '..', '..', 'workers', 'code', 'deleteSection.js'));
      // listen to message to wait response from worker
      worker.on("message", (data) => {
        res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
@@ -61,7 +61,7 @@ module.exports.register = (app) => {
   // To update section entry
   app.put("/sections/:site_code/:code_id/:code_name", (req, res) => {
    if (utils.authenticate(req.headers.authorization)) {
-      const worker = new Worker(path.join(__dirname, '..', 'workers', 'code', 'putSection.js'));
+      const worker = new Worker(path.join(__dirname, '..', '..', 'workers', 'code', 'putSection.js'));
      // listen to message to wait response from worker
      worker.on("message", (data) => {
        res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
