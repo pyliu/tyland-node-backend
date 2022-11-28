@@ -3,7 +3,7 @@ const path = require("path");
 const __basename = path.basename(__filename);
 const md5 = require("md5");
 const isEmpty = require("lodash/isEmpty");
-const config = require(path.join(__dirname, "..", "model", "config"))
+const config = require(path.join(__dirname, "..", "..",  "model", "config"));
 const MongoClient = require('mongodb').MongoClient;
 
 parentPort.on("message", async (loginInfo) => {

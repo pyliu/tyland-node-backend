@@ -1,15 +1,15 @@
+
 const path = require("path");
 const __basename = path.basename(__filename);
-const isEmpty = require("lodash/isEmpty");
 const { parentPort } = require("worker_threads");
-const config = require(path.join(__dirname, "..", "model", "config"));
+const isEmpty = require("lodash/isEmpty");
+const config = require(path.join(__dirname, "..", "..",  "model", "config"));
 const MongoClient = require('mongodb').MongoClient;
 
 parentPort.on("message", async (authorizationHeader) => {
-  // auth header, e.g. "Bearer 1dca1747faea2a040d8adedba4cb44ec"
-  const hash = authorizationHeader.replace("Bearer ", "");
+  const hash = authorizationHeader.replace('Bearer ', '')
   const client = new MongoClient(config.connUri);
-  let userDoc = {}
+  const data = { ok: false, message: '未知的錯誤' };
   try {
     await client.connect();
     config.isDev && console.log(__basename, '✔ DB已連線');
@@ -18,19 +18,18 @@ parentPort.on("message", async (authorizationHeader) => {
     const user = await userCollection.findOne(tokenFilter);
     if (isEmpty(user)) {
       config.isDev && console.log(__basename, '❌ 找不到使用者資料', tokenFilter);
+      data.message = `找不到使用者(token: ${hash})`;
     } else {
-      const authority = parseInt(user.authority) || 0;
-      if ((authority & 2) === 2) {
-        config.isDev && console.log(__basename, "⚠ 帳戶已停用!", user.id, user.name);
-      } else {
-        config.isDev && console.log(__basename, '✔ 找到使用者資料', tokenFilter);
-        userDoc = { ...user };
-      }
+      config.isDev && console.log(__basename, '✔ 找到使用者資料', tokenFilter);
+      const result = await userCollection.updateOne(tokenFilter, { $set: { token: { hash: null, expire: null } } });
+      config.isDev && console.log(__basename, `${user.id} token 已清空`, `找到 ${result.matchedCount} 個文件, 更新 ${result.modifiedCount} 個文件`);
+      data.ok = true;
+      data.message = `${user.id} ${user.name} token 已清空。`;
     }
   } catch (e) {
     console.error(__basename, '❗ 處理登入執行期間錯誤', e);
   } finally {
-    parentPort.postMessage(userDoc);
+    parentPort.postMessage(data);
     await client.close();
   }
 });

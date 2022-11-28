@@ -7,7 +7,6 @@ const fileUpload = require("express-fileupload");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs-extra");
-const { isEmpty } = require("lodash");
 const StatusCodes = require("http-status-codes").StatusCodes;
 const { Worker } = require("worker_threads");
 const config = require('./model/config');
@@ -26,53 +25,6 @@ app.use(fileUpload());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json({limit : 5242880})); // allow maximum 5MB json payload
 
-app.post("/login", (req, res) => {
-  const postBody = req.body
-  isDev && console.log('👉 收到 Login 請求', postBody);
-  if (isEmpty(postBody.userid) || isEmpty(postBody.password)) {
-    console.warn('登入資訊為空值。', postBody)
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  } else {
-    const worker = new Worker("./workers/login.js");
-    // listen to message to wait response from worker
-    worker.on("message", (data) => {
-      res.status(data.loggedIn ? StatusCodes.OK : StatusCodes.UNAUTHORIZED).send({
-        token: data.token
-      });
-    });
-    // send data to worker
-    worker.postMessage(postBody);
-  }
-});
-
-app.post("/logout", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/logout.js");
-    // listen to message to wait response from worker
-    worker.on("message", (data) => {
-      res.status(data.ok ? StatusCodes.OK : StatusCodes.UNAUTHORIZED).send({ data });
-    });
-    // send authorization header to worker
-    worker.postMessage(req.headers.authorization);
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-});
-
-app.get("/me", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/me.js");
-    // listen to message to wait response from worker
-    worker.on("message", (user) => {
-      res.status(isEmpty(user) ? StatusCodes.UNAUTHORIZED : StatusCodes.OK).send({ user });
-    });
-    // send authorization header to worker
-    worker.postMessage(req.headers.authorization);
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-});
-
 app.post("/add", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
     const worker = new Worker("./workers/add.js");
@@ -82,20 +34,6 @@ app.post("/add", (req, res) => {
     });
     // post data
     worker.postMessage(req.body);
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-})
-
-app.delete("/case/:case_id/:section_code/:opdate", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/deleteCase.js");
-    // listen to message to wait response from worker
-    worker.on("message", (data) => {
-      isDev && console.log(data);
-      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send(data);
-    });
-    worker.postMessage({ params: req.params, oid: req.body._id });
   } else {
     res.status(StatusCodes.BAD_REQUEST).send({});
   }
@@ -143,57 +81,15 @@ app.post("/search/creator", (req, res) => {
   }
 })
 
-app.post("/user", (req, res) => {
+app.delete("/case/:case_id/:section_code/:opdate", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/user.js");
+    const worker = new Worker("./workers/deleteCase.js");
     // listen to message to wait response from worker
     worker.on("message", (data) => {
-      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
+      isDev && console.log(data);
+      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send(data);
     });
-    // post data
-    worker.postMessage(req.body);
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-})
-
-app.get("/user/:user_id", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/user.js");
-    // listen to message to wait response from worker
-    worker.on("message", (data) => {
-      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
-    });
-    // post data
-    worker.postMessage({ id: req.params.user_id });
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-})
-
-app.put("/user/:user_id", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/putUser.js");
-    // listen to message to wait response from worker
-    worker.on("message", (data) => {
-      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
-    });
-    // post data
-    worker.postMessage({ id: req.params.user_id, post: req.body });
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-})
-
-app.post("/user/:user_id", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/postUser.js");
-    // listen to message to wait response from worker
-    worker.on("message", (data) => {
-      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
-    });
-    // post data
-    worker.postMessage({ id: req.params.user_id, post: req.body });
+    worker.postMessage({ params: req.params, oid: req.body._id });
   } else {
     res.status(StatusCodes.BAD_REQUEST).send({});
   }
@@ -247,101 +143,20 @@ app.put("/:case_id/:section_code/:opdate/:land_number/:serial/:distance", (req, 
   }
 })
 /**
- * calculates stats by file system
+ * Auth API
  */
-app.get("/stats/:site_code/uploaded", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/statsUploaded.js");
-    // listen to message to wait response from worker
-    worker.on("message", (data) => {
-      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
-    });
-    // post data
-    worker.postMessage({ site_code: req.params.site_code });
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-})
-app.get("/stats/:site_code/cases", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/statsCases.js");
-    // listen to message to wait response from worker
-    worker.on("message", (data) => {
-      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
-    });
-    // post data
-    worker.postMessage({ site_code: req.params.site_code });
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-})
-app.get("/stats/:site_code/marks", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/statsMarks.js");
-    // listen to message to wait response from worker
-    worker.on("message", (data) => {
-      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
-    });
-    // post data
-    worker.postMessage({ site_code: req.params.site_code });
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-})
+ const authAPI = require('./model/api/auth');
+ authAPI.register(app);
 /**
- * mongodb stats by post API
+ * User API
  */
-app.post("/stats/mongodb/uploaded/:site_code/:st_date/:ed_date", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/mongodb/statsUploaded.js");
-    // listen to message to wait response from worker
-    worker.on("message", (data) => {
-      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
-    });
-    // post data
-    worker.postMessage({
-      site_code: req.params.site_code,
-      st_date: req.params.st_date,
-      ed_date: req.params.ed_date
-    });
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-})
-app.post("/stats/mongodb/marks/:site_code/:st_date/:ed_date", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/mongodb/statsMarks.js");
-    // listen to message to wait response from worker
-    worker.on("message", (data) => {
-      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
-    });
-    // post data
-    worker.postMessage({
-      site_code: req.params.site_code,
-      st_date: req.params.st_date,
-      ed_date: req.params.ed_date
-    });
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-})
-app.post("/stats/mongodb/cases/:site_code/:st_date/:ed_date", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/mongodb/statsCases.js");
-    // listen to message to wait response from worker
-    worker.on("message", (data) => {
-      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
-    });
-    // post data
-    worker.postMessage({
-      site_code: req.params.site_code,
-      st_date: req.params.st_date,
-      ed_date: req.params.ed_date
-    });
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-})
+ const userAPI = require('./model/api/user');
+ userAPI.register(app); 
+/**
+ * Stats API
+ */
+ const statsAPI = require('./model/api/stats');
+ statsAPI.register(app);
 /**
  * Codes API
  */
