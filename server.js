@@ -53,34 +53,6 @@ app.post("/update", (req, res) => {
   }
 })
 
-app.post("/search/case", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/search.js");
-    // listen to message to wait response from worker
-    worker.on("message", (data) => {
-      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
-    });
-    // post data
-    worker.postMessage(req.body);
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-})
-
-app.post("/search/creator", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/creator.js");
-    // listen to message to wait response from worker
-    worker.on("message", (data) => {
-      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
-    });
-    // post data
-    worker.postMessage(req.body);
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-})
-
 app.delete("/case/:case_id/:section_code/:opdate", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
     const worker = new Worker("./workers/deleteCase.js");
@@ -151,7 +123,12 @@ app.put("/:case_id/:section_code/:opdate/:land_number/:serial/:distance", (req, 
  * User API
  */
  const userAPI = require('./model/api/user');
- userAPI.register(app); 
+ userAPI.register(app);
+ /**
+  * Search API
+  */
+  const searchAPI = require('./model/api/search');
+  searchAPI.register(app); 
 /**
  * Stats API
  */
