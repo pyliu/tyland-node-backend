@@ -3,7 +3,7 @@ const path = require("path");
 const __basename = path.basename(__filename);
 const isEmpty = require("lodash/isEmpty");
 const { parentPort } = require("worker_threads");
-const config = require(path.join(__dirname, "..", "model", "config"));
+const config = require(path.join(__dirname, "..", "..", "model", "config"));
 const { ObjectId, MongoClient } = require("mongodb");
 
 parentPort.on("message", async (postBody) => {
@@ -56,6 +56,7 @@ parentPort.on("message", async (postBody) => {
         ) {
           const baseFolder = path.join(
             __dirname,
+            "..",
             "..",
             config.uploadPath,
             site,

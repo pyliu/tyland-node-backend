@@ -25,33 +25,33 @@ app.use(fileUpload());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json({limit : 5242880})); // allow maximum 5MB json payload
 
-app.post("/add", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/add.js");
-    // listen to message to wait response from worker
-    worker.on("message", (data) => {
-      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
-    });
-    // post data
-    worker.postMessage(req.body);
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-})
+// app.post("/add", (req, res) => {
+//   if (utils.authenticate(req.headers.authorization)) {
+//     const worker = new Worker("./workers/add.js");
+//     // listen to message to wait response from worker
+//     worker.on("message", (data) => {
+//       res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
+//     });
+//     // post data
+//     worker.postMessage(req.body);
+//   } else {
+//     res.status(StatusCodes.BAD_REQUEST).send({});
+//   }
+// })
 
-app.post("/update", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/update.js");
-    // listen to message to wait response from worker
-    worker.on("message", (data) => {
-      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
-    });
-    // post data
-    worker.postMessage(req.body);
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-})
+// app.post("/update", (req, res) => {
+//   if (utils.authenticate(req.headers.authorization)) {
+//     const worker = new Worker("./workers/update.js");
+//     // listen to message to wait response from worker
+//     worker.on("message", (data) => {
+//       res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send({ ...data });
+//     });
+//     // post data
+//     worker.postMessage(req.body);
+//   } else {
+//     res.status(StatusCodes.BAD_REQUEST).send({});
+//   }
+// })
 
 app.delete("/case/:case_id/:section_code/:opdate", (req, res) => {
   if (utils.authenticate(req.headers.authorization)) {
@@ -119,6 +119,11 @@ app.put("/:case_id/:section_code/:opdate/:land_number/:serial/:distance", (req, 
  */
  const authAPI = require('./model/api/auth');
  authAPI.register(app);
+ /**
+  * Case API
+  */
+const caseAPI = require('./model/api/case');
+caseAPI.register(app);
 /**
  * User API
  */
@@ -127,8 +132,8 @@ app.put("/:case_id/:section_code/:opdate/:land_number/:serial/:distance", (req, 
  /**
   * Search API
   */
-  const searchAPI = require('./model/api/search');
-  searchAPI.register(app); 
+const searchAPI = require('./model/api/search');
+searchAPI.register(app);
 /**
  * Stats API
  */

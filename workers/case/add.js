@@ -2,7 +2,7 @@ const path = require("path");
 const __basename = path.basename(__filename);
 const isEmpty = require("lodash/isEmpty");
 const { parentPort } = require("worker_threads");
-const config = require(path.join(__dirname, "..", "model", "config"));
+const config = require(path.join(__dirname, "..", "..", "model", "config"));
 const MongoClient = require("mongodb").MongoClient;
 
 parentPort.on("message", async (postBody) => {
