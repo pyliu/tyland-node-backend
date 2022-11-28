@@ -2,7 +2,7 @@ const path = require("path");
 const fs = require("fs-extra");
 const __basename = path.basename(__filename);
 const { parentPort } = require("worker_threads");
-const config = require(path.join(__dirname, "..", "model", "config"));
+const config = require(path.join(__dirname, "..", "..", "model", "config"));
 
 parentPort.on("message", async (params) => {
   /**
@@ -24,6 +24,7 @@ parentPort.on("message", async (params) => {
     const site = code.substring(0, 2);
     const dirpath = path.join(
       __dirname,
+      "..",
       "..",
       config.uploadPath,
       site,

@@ -2,7 +2,7 @@ const path = require("path");
 const fs = require("fs");
 const __basename = path.basename(__filename);
 const { parentPort } = require("worker_threads");
-const config = require(path.join(__dirname, "..", "model", "config"));
+const config = require(path.join(__dirname, "..", "..", "model", "config"));
 
 parentPort.on("message", async (params) => {
   /**
@@ -20,6 +20,7 @@ parentPort.on("message", async (params) => {
     payload: path.join(
       __dirname,
       "..",
+      "..",
       "not_found.jpg"
     )
   };
@@ -29,6 +30,7 @@ parentPort.on("message", async (params) => {
     const site = code.substring(0, 2);
     const filepath = path.join(
       __dirname,
+      "..",
       "..",
       config.uploadPath,
       `/${site}/${params.case_id}/${params.section_code}/${params.opdate}/${params.land_number}/${params.serial}/${params.distance}.jpg`

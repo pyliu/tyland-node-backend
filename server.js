@@ -1,5 +1,6 @@
 require('dotenv').config()
-const isDev = process.env.NODE_ENV !== 'production';
+const config = require('./model/config');
+const utils = require('./model/utils');
 const compression = require("compression");
 const express = require("express");
 const https = require('https');
@@ -9,8 +10,6 @@ const path = require("path");
 const fs = require("fs-extra");
 const StatusCodes = require("http-status-codes").StatusCodes;
 const { Worker } = require("worker_threads");
-const config = require('./model/config');
-const utils = require('./model/utils');
 
 const dirName = config.uploadPath;
 require("./model/initialize")();
@@ -25,67 +24,6 @@ app.use(fileUpload());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json({limit : 5242880})); // allow maximum 5MB json payload
 
-// app.delete("/case/:case_id/:section_code/:opdate", (req, res) => {
-//   if (utils.authenticate(req.headers.authorization)) {
-//     const worker = new Worker("./workers/deleteCase.js");
-//     // listen to message to wait response from worker
-//     worker.on("message", (data) => {
-//       isDev && console.log(data);
-//       res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send(data);
-//     });
-//     worker.postMessage({ params: req.params, oid: req.body._id });
-//   } else {
-//     res.status(StatusCodes.BAD_REQUEST).send({});
-//   }
-// })
-
-app.get("/:case_id/:section_code/:opdate/:land_number/:serial/:distance", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/mark.js");
-    // listen to message to wait response from worker
-    worker.on("message", (data) => {
-      isDev && console.log(data);
-      res.status(StatusCodes.OK).sendFile(data.payload);
-    });
-    // params data to generate mark image path
-    worker.postMessage(req.params);
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-})
-
-app.delete("/:case_id/:section_code/:opdate/:land_number/:serial", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/delete.js");
-    // listen to message to wait response from worker
-    worker.on("message", (data) => {
-      isDev && console.log(data);
-      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send(data);
-    });
-    // params data to generate mark dir path
-    worker.postMessage(req.params);
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-})
-
-app.put("/:case_id/:section_code/:opdate/:land_number/:serial/:distance", (req, res) => {
-  if (utils.authenticate(req.headers.authorization)) {
-    const worker = new Worker("./workers/b64.js");
-    // listen to message to wait response from worker
-    worker.on("message", (data) => {
-      isDev && console.log(data);
-      res.status(data.statusCode === config.statusCode.FAIL ? StatusCodes.NOT_ACCEPTABLE : StatusCodes.OK).send(data);
-    });
-    // params data to generate mark image path
-    worker.postMessage({
-      b64: req.body.b64,
-      params: req.params
-    });
-  } else {
-    res.status(StatusCodes.BAD_REQUEST).send({});
-  }
-})
 /**
  * Auth API
  */
@@ -106,6 +44,16 @@ caseAPI.register(app);
   */
 const searchAPI = require('./model/api/search');
 searchAPI.register(app);
+ /**
+  * Image API
+  */
+const imageAPI = require('./model/api/image');
+imageAPI.register(app);
+/**
+ * Mark API
+ */
+const markAPI = require('./model/api/mark');
+markAPI.register(app);
 /**
  * Stats API
  */

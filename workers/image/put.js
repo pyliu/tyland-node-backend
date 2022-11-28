@@ -3,7 +3,7 @@ const path = require("path");
 const __basename = path.basename(__filename);
 const isEmpty = require("lodash/isEmpty");
 const { parentPort } = require("worker_threads");
-const config = require(path.join(__dirname, "..", "model", "config"));
+const config = require(path.join(__dirname, "..", "..", "model", "config"));
 
 parentPort.on("message", async (inData) => {
   config.isDev && console.log("收到更新界標影像請求", inData);
@@ -20,6 +20,7 @@ parentPort.on("message", async (inData) => {
     const site = code.substring(0, 2);
     const folder = path.join(
       __dirname,
+      "..",
       "..",
       config.uploadPath,
       site,
