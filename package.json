@@ -24,7 +24,7 @@
     "https": "^1.0.0",
     "lodash": "^4.17.21",
     "md5": "^2.3.0",
-    "mongodb": "^4.1.4"
+    "mongodb": "^4.17.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.13"
